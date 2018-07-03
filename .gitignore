@@ -3,6 +3,20 @@ dist/
 logs/
 classes/
 target/
+workspace/
+
+# generic main project
+/.project
+/.settings
+
+# all hail windows
+Thumbs.db
+
+# and mac too
+.DS_Store
+
+# and linux too
+*~
 
 # Compiled class file
 *.class

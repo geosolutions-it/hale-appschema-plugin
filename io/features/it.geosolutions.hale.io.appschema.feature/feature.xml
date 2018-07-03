@@ -2,7 +2,7 @@
 <feature
       id="it.geosolutions.hale.io.appschema.feature"
       label="App-Schema support for HALE"
-      version="3.5.0.qualifier"
+      version="1.0.0.qualifier"
       provider-name="GeoSolutions">
 
    <description url="http://www.example.com/description">

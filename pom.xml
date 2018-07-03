@@ -1,140 +1,158 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
-  <modelVersion>4.0.0</modelVersion>
 
-  <version>3.5.0-SNAPSHOT</version>
-  <groupId>it.geosolutions</groupId>
-  <artifactId>hale-parent</artifactId>
-  
-  <parent>
-    <groupId>eu.esdihumboldt</groupId>
-    <artifactId>rcp-parent</artifactId>
-    <version>3.5.0-SNAPSHOT</version>
-  </parent>
-  
-  <packaging>pom</packaging>
-  <name>Parent for all HALE plug-in projects</name>
-  
-  <pluginRepositories>
-    <!-- pluginRepository>
-      <id>artifactory</id>
-      <url>http://www.cityserver3d.de:8082/artifactory/repo</url>
-    </pluginRepository -->
-    <!-- see https://github.com/groovy/groovy-eclipse/wiki/Groovy-Eclipse-Maven-plugin -->
-    <pluginRepository>
-      <id>bintray</id>
-      <name>Groovy Bintray</name>
-      <url>https://dl.bintray.com/groovy/maven</url>
-      <releases>
-        <updatePolicy>never</updatePolicy>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </pluginRepository>
-  </pluginRepositories>
-  
-  <!-- repositories>
-    <repository>
-      <id>artifactory</id>
-      <url>http://www.cityserver3d.de:8082/artifactory/repo</url>
-    </repository>
-  </repositories -->
+    <modelVersion>4.0.0</modelVersion>
 
-  <!-- distributionManagement>
-    <repository>
-      <id>artifactory</id>
-      <url>http://www.cityserver3d.de:8082/artifactory/libs-release-local</url>
-    </repository>
-    <snapshotRepository>
-      <id>artifactory</id>
-      <url>http://www.cityserver3d.de:8082/artifactory/libs-snapshot-local</url>
-    </snapshotRepository>
-  </distributionManagement -->
+    <groupId>it.geosolutions</groupId>
+    <artifactId>hale-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
 
-  <properties>
-    <tycho-version>0.25.0</tycho-version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-  
-  <modules>
-    <module>doc/plugins/it.geosolutions.hale.doc.appschema</module>
-    <module>io/features/it.geosolutions.hale.io.appschema.feature</module>
-    <module>io/plugins/it.geosolutions.hale.io.appschema</module>
-    <module>io/plugins/it.geosolutions.hale.io.appschema.model.jaxb</module>
-    <module>io/plugins/it.geosolutions.hale.io.appschema.test</module>
-    <module>io/plugins/it.geosolutions.hale.io.appschema.test.product</module>
-    <module>io/plugins/it.geosolutions.hale.io.appschema.ui</module>
-    <module>io/site/it.geosolutions.hale.io.appschema.site</module>
-  </modules>
-  
-  <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.eclipse.tycho</groupId>
-          <artifactId>tycho-p2-director-plugin</artifactId>
-          <version>${tycho-version}</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-    <plugins>
-      
-      <!-- plugin>
-        <groupId>org.eclipse.tycho</groupId>
-        <artifactId>tycho-compiler-plugin</artifactId>
-        <version>${tycho-version}</version>
-        <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
-        </configuration>
-      </plugin -->
-      <plugin>
-        <groupId>org.eclipse.tycho</groupId>
-        <artifactId>target-platform-configuration</artifactId>
-        <version>${tycho-version}</version>
-        <configuration>
-          <resolver>p2</resolver>
-          <target>
-            <artifact>
-              <groupId>eu.esdihumboldt</groupId>
-              <artifactId>platform</artifactId>
-              <version>3.5.0-SNAPSHOT</version>
-              <classifier>hale-platform</classifier>
-            </artifact>
-          </target>
-          <ignoreTychoRepositories>true</ignoreTychoRepositories>
-          <environments>
-            <environment>
-              <os>macosx</os>
-              <ws>cocoa</ws>
-              <arch>x86_64</arch>
-            </environment>
-          </environments>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.eclipse.tycho</groupId>
-        <artifactId>tycho-maven-plugin</artifactId>
-        <version>${tycho-version}</version>
-        <extensions>true</extensions>
-      </plugin>
-      <!-- Generate source bundles -->
-      <plugin>
-        <groupId>org.eclipse.tycho</groupId>
-        <artifactId>tycho-source-plugin</artifactId>
-        <version>${tycho-version}</version>
-        <executions>
-          <execution>
-            <id>plugin-source</id>
-            <goals>
-              <goal>plugin-source</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      
-    </plugins>
-  </build>
+    <parent>
+        <groupId>eu.esdihumboldt</groupId>
+        <artifactId>rcp-parent</artifactId>
+        <version>3.5.0-SNAPSHOT</version>
+    </parent>
+
+    <packaging>pom</packaging>
+    <name>Parent for all HALE plug-in projects</name>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>bintray</id>
+            <name>Groovy Bintray</name>
+            <url>https://dl.bintray.com/groovy/maven</url>
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <properties>
+        <tycho-version>0.25.0</tycho-version>
+        <hale-version>3.5.0-SNAPSHOT</hale-version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <modules>
+        <module>doc/plugins/it.geosolutions.hale.doc.appschema</module>
+        <module>io/features/it.geosolutions.hale.io.appschema.feature</module>
+        <module>io/plugins/it.geosolutions.hale.io.appschema</module>
+        <module>io/plugins/it.geosolutions.hale.io.appschema.model.jaxb</module>
+        <module>io/plugins/it.geosolutions.hale.io.appschema.test</module>
+        <module>io/plugins/it.geosolutions.hale.io.appschema.test.product</module>
+        <module>io/plugins/it.geosolutions.hale.io.appschema.ui</module>
+        <module>io/site/it.geosolutions.hale.io.appschema.site</module>
+    </modules>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.eclipse.tycho</groupId>
+                    <artifactId>tycho-maven-plugin</artifactId>
+                    <version>${tycho-version}</version>
+                    <extensions>true</extensions>
+                </plugin>
+                <!-- Generate source bundles -->
+                <plugin>
+                    <groupId>org.eclipse.tycho</groupId>
+                    <artifactId>tycho-source-plugin</artifactId>
+                    <version>${tycho-version}</version>
+                    <executions>
+                        <execution>
+                            <id>plugin-source</id>
+                            <goals>
+                                <goal>plugin-source</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.eclipse.tycho</groupId>
+                    <artifactId>tycho-p2-director-plugin</artifactId>
+                    <version>${tycho-version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.eclipse.tycho</groupId>
+                    <artifactId>target-platform-configuration</artifactId>
+                    <version>${tycho-version}</version>
+                    <configuration>
+                        <resolver>p2</resolver>
+                        <target>
+                            <artifact>
+                                <groupId>eu.esdihumboldt</groupId>
+                                <artifactId>platform</artifactId>
+                                <version>${hale-version}</version>
+                                <classifier>hale-platform</classifier>
+                            </artifact>
+                        </target>
+                        <ignoreTychoRepositories>true</ignoreTychoRepositories>
+                        <environments>
+                            <environment>
+                                <os>macosx</os>
+                                <ws>cocoa</ws>
+                                <arch>x86_64</arch>
+                            </environment>
+                        </environments>
+                        <dependency-resolution>
+                            <extraRequirements>
+                                <requirement>
+                                    <type>eclipse-plugin</type>
+                                    <id>javax.annotation.extensions</id>
+                                    <versionRange>0.0.0</versionRange>
+                                </requirement>
+                            </extraRequirements>
+                        </dependency-resolution>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.eclipse.tycho</groupId>
+                    <artifactId>tycho-compiler-plugin</artifactId>
+                    <version>${tycho-version}</version>
+                    <configuration>
+                        <source>1.8</source>
+                        <target>1.8</target>
+                        <excludeResources>
+                            <!-- Exclude translation files (because they are very incomplete ATM) -->
+                            <excludeResource>**/messages_*.properties</excludeResource>
+                            <excludeResource>**/bundle_*.properties</excludeResource>
+                        </excludeResources>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.eclipse.tycho</groupId>
+                    <artifactId>tycho-packaging-plugin</artifactId>
+                    <version>${tycho-version}</version>
+                    <configuration>
+                        <forceContextQualifier>SNAPSHOT</forceContextQualifier>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.eclipse.tycho</groupId>
+                    <artifactId>tycho-surefire-plugin</artifactId>
+                    <version>${tycho-version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>target-platform-configuration</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-maven-plugin</artifactId>
+            </plugin>
+            <!-- Generate source bundles -->
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-source-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>
