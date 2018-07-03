@@ -1,0 +1,11 @@
+<workspace>
+  #if( $workspaceId && !$workspaceId.empty )
+    <id>$workspaceId</id>
+  #end
+  <name>$workspaceName</name>
+  #if ($isIsolated == "true")
+  <isolated>true</isolated>
+  #else
+  <isolated>false</isolated>
+  #end
+</workspace>

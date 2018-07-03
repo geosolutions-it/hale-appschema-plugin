@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="eu.esdihumboldt.hale.io.provider">
+      <provider
+            class="it.geosolutions.hale.io.appschema.writer.AppSchemaMappingFileWriter"
+            id="it.geosolutions.hale.io.appschema.writer"
+            name="App-Schema Configuration">
+         <contentType
+               ref="it.geosolutions.hale.io.appschema.mapping">
+         </contentType>
+         <contentType
+               ref="it.geosolutions.hale.io.appschema.archive">
+         </contentType>
+      </provider>
+      <provider
+            class="it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUploader"
+            id="it.geosolutions.hale.io.appschema.uploader"
+            name="App-Schema Configuration [Direct Upload]">
+         <contentType
+               ref="it.geosolutions.hale.io.appschema.rest">
+         </contentType>
+      </provider>
+   </extension>
+   <extension
+         point="eu.esdihumboldt.hale.io.complexvalue">
+      <complexValue
+            descriptor="it.geosolutions.hale.io.appschema.model.DataStoreComplexType"
+            id="it.geosolutions.hale.io.appschema.datastore"
+            name="DataStore"
+            namespace="http://www.geotools.org/app-schema"
+            type="it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.SourceDataStoresPropertyType$DataStore">
+      </complexValue>
+      <complexValue
+            descriptor="it.geosolutions.hale.io.appschema.model.FeatureChainingComplexType"
+            id="it.geosolutions.hale.io.appschema.featurechaining"
+            name="FeatureChaining"
+            namespace="http://www.geotools.org/app-schema"
+            type="it.geosolutions.hale.io.appschema.model.FeatureChaining">
+      </complexValue>
+      <complexValue
+            descriptor="it.geosolutions.hale.io.appschema.model.WorkspaceConfigurationComplexType"
+            id="it.geosolutions.hale.io.appschema.workspaceconf"
+            name="WorkspaceConfiguration"
+            namespace="http://www.geotools.org/app-schema"
+            type="it.geosolutions.hale.io.appschema.model.WorkspaceConfiguration">
+      </complexValue>
+   </extension>
+   <extension
+         point="eu.esdihumboldt.hale.align.compatibility">
+      <compatibility
+            class="it.geosolutions.hale.io.appschema.compatibility.GeoServerCompatibilityMode"
+            id="it.geosolutions.hale.io.appschema.compatibility"
+            key="it.geosolutions.hale.io.appschema.compatibility.geoserver"
+            name="GeoServer">
+         <supportsFilter
+               ref="CQL">
+         </supportsFilter>
+         <supportsFilter
+               ref="ECQL">
+         </supportsFilter>
+      </compatibility>
+   </extension>
+   <extension
+         point="org.eclipse.core.contenttype.contentTypes">
+      <content-type
+            base-type="org.eclipse.core.runtime.xml"
+            file-extensions="xml"
+            id="it.geosolutions.hale.io.appschema.mapping"
+            name="App-Schema Mapping File"
+            priority="normal">
+         <describer
+               class="eu.esdihumboldt.hale.util.nonosgi.contenttype.describer.XMLRootElementContentDescriber2">
+            <parameter
+                  name="element"
+                  value="{http://www.geotools.org/app-schema}AppSchemaDataAccess">
+            </parameter>
+         </describer>
+      </content-type>
+      <content-type
+            file-extensions="zip"
+            id="it.geosolutions.hale.io.appschema.archive"
+            name="App-Schema Config Archive"
+            priority="normal">
+      </content-type>
+      <content-type
+            id="it.geosolutions.hale.io.appschema.rest"
+            name="App-Schema REST"
+            priority="normal">
+      </content-type>
+   </extension>
+
+</plugin>

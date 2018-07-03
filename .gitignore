@@ -1,3 +1,9 @@
+bin/
+dist/
+logs/
+classes/
+target/
+
 # Compiled class file
 *.class
 

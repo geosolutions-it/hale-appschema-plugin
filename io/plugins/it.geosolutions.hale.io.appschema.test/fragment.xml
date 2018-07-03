@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<fragment>
+
+   <extension
+         id="AppSchemaTests"
+         point="org.eclipse.core.runtime.products">
+      <product
+            application="de.fhg.igd.equinox.test"
+            name="AppSchemaTests">
+         <property
+               name="appName"
+               value="AppSchemaTests">
+         </property>
+      </product>
+   </extension>
+</fragment>

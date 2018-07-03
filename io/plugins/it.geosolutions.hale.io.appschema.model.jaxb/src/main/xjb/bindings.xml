@@ -1,0 +1,21 @@
+<bindings xmlns="http://java.sun.com/xml/ns/jaxb"
+          xmlns:xsi="http://www.w3.org/2000/10/XMLSchema-instance"
+          xmlns:xs="http://www.w3.org/2001/XMLSchema"
+          version="2.1">
+  <bindings schemaLocation="../xsd/AppSchemaDataAccess4Jaxb.xsd" version="1.0">
+    <schemaBindings>
+      <package name="it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema" />
+    </schemaBindings>
+    <!-- rename the "id" attribute in AppSchemaDataAccess4Jaxb.xsd -->
+    <bindings node="//xs:complexType[@name='SourceDataStoresPropertyType']">
+      <bindings node=".//xs:attribute[@name='id']">
+        <property name="idAttribute"/>
+      </bindings>
+    </bindings>
+  </bindings>
+  <bindings schemaLocation="../xsd/expr.xsd" version="1.1.0" node="/xs:schema">
+    <schemaBindings>
+      <package name="it.geosolutions.hale.io.appschema.impl.internal.generated.net_opengis_ogc" />
+    </schemaBindings>
+  </bindings>
+</bindings>
