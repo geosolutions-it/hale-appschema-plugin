@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<site>
-   <feature url="features/it.geosolutions.hale.io.appschema.feature_1.0.0.qualifier.jar" id="it.geosolutions.hale.io.appschema.feature" version="1.0.0.qualifier">
-      <category name="it.geosolutions.hale.appschema"/>
-   </feature>
-   <category-def name="it.geosolutions.hale.appschema" label="App-Schema Support for HALE"/>
-</site>

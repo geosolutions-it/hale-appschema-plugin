@@ -1,21 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="it.geosolutions.hale.io.appschema.feature"
-      label="App-Schema support for HALE"
+      label="App-Schema I/O Provider"
       version="1.0.0.qualifier"
       provider-name="GeoSolutions">
 
-   <description url="http://www.example.com/description">
-      [Enter Feature Description here.]
-   </description>
-
-   <copyright url="http://www.example.com/copyright">
-      [Enter Copyright Description here.]
-   </copyright>
-
-   <license url="http://www.example.com/license">
-      [Enter License Description here.]
+   <license url="">
+      GNU General Public License
    </license>
+
+   <requires>
+      <import plugin="eu.esdihumboldt.hale.common.instance"/>
+      <import plugin="org.eclipse.core.runtime" version="3.6.0" match="greaterOrEqual"/>
+      <import plugin="eu.esdihumboldt.hale.common.align"/>
+      <import plugin="org.apache.velocity" version="1.6.2" match="greaterOrEqual"/>
+      <import plugin="it.geosolutions.hale.io.appschema.model.jaxb" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="com.google.guava"/>
+      <import plugin="de.fhg.igd.eclipse.util"/>
+      <import plugin="de.fhg.igd.slf4jplus"/>
+      <import plugin="eu.esdihumboldt.cst.functions.core"/>
+      <import plugin="eu.esdihumboldt.cst.functions.geometric"/>
+      <import plugin="eu.esdihumboldt.cst.functions.numeric"/>
+      <import plugin="eu.esdihumboldt.cst.functions.string"/>
+      <import plugin="eu.esdihumboldt.hale.common.align.io.model.jaxb"/>
+      <import plugin="eu.esdihumboldt.hale.common.core"/>
+      <import plugin="eu.esdihumboldt.hale.common.filter"/>
+      <import plugin="eu.esdihumboldt.hale.common.lookup"/>
+      <import plugin="eu.esdihumboldt.hale.common.schema"/>
+      <import plugin="eu.esdihumboldt.hale.common.schema.persist"/>
+      <import plugin="eu.esdihumboldt.hale.io.xsd"/>
+      <import plugin="eu.esdihumboldt.hale.util.nonosgi"/>
+      <import plugin="eu.esdihumboldt.util"/>
+      <import plugin="eu.esdihumboldt.util.groovy"/>
+      <import plugin="org.apache.commons.io"/>
+      <import plugin="org.apache.commons.lang"/>
+      <import plugin="org.apache.httpcomponents.httpcore"/>
+      <import plugin="org.apache.httpcomponents.httpclient"/>
+      <import plugin="org.apache.httpcomponents.fluent-hc"/>
+      <import plugin="org.apache.xmlbeans"/>
+      <import plugin="org.geotools"/>
+      <import plugin="org.opengis"/>
+      <import plugin="slf4j.api"/>
+      <import plugin="org.eclipse.ui" version="3.6.2" match="greaterOrEqual"/>
+      <import plugin="eu.esdihumboldt.hale.ui"/>
+      <import plugin="it.geosolutions.hale.io.appschema" version="1.0.0" match="greaterOrEqual"/>
+      <import plugin="eu.esdihumboldt.hale.ui.common"/>
+      <import plugin="eu.esdihumboldt.hale.ui.util"/>
+      <import plugin="org.eclipse.jface"/>
+      <import plugin="org.eclipse.osgi"/>
+   </requires>
 
    <plugin
          id="it.geosolutions.hale.io.appschema"
@@ -26,6 +59,13 @@
 
    <plugin
          id="it.geosolutions.hale.io.appschema.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="it.geosolutions.hale.io.appschema.model.jaxb"
          download-size="0"
          install-size="0"
          version="0.0.0"

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="it.geosolutions.hale.doc.appschema.feature"
+      label="App-Schema I/O Provider - Documentation"
+      version="1.0.0.qualifier"
+      provider-name="GeoSolutions">
+
+   <license url="">
+      GNU General Public License
+   </license>
+
+   <requires>
+      <import plugin="org.eclipse.help"/>
+   </requires>
+
+   <plugin
+         id="it.geosolutions.hale.doc.appschema"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+</feature>

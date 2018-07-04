@@ -39,13 +39,14 @@
 
     <modules>
         <module>doc/plugins/it.geosolutions.hale.doc.appschema</module>
+        <module>doc/features/it.geosolutions.hale.doc.appschema.feature</module>
         <module>io/features/it.geosolutions.hale.io.appschema.feature</module>
         <module>io/plugins/it.geosolutions.hale.io.appschema</module>
         <module>io/plugins/it.geosolutions.hale.io.appschema.model.jaxb</module>
         <module>io/plugins/it.geosolutions.hale.io.appschema.test</module>
         <module>io/plugins/it.geosolutions.hale.io.appschema.test.product</module>
         <module>io/plugins/it.geosolutions.hale.io.appschema.ui</module>
-        <module>io/site/it.geosolutions.hale.io.appschema.site</module>
+        <module>site/it.geosolutions.hale.appschema.site</module>
     </modules>
 
     <build>
