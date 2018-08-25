@@ -1,12 +1,176 @@
-<STYLE type="text/css">
-td.spacer {padding-bottom: 10px; padding-top: 10px;}
-.title { font-family: sans-serif; color: #99AACC;}
-.bodyText { font-family: sans-serif; font-size: 9pt; color:#000000;  }
-.sub-header { font-family: sans-serif; font-style: normal; font-weight: bold; font-size: 9pt; color: white;}
-.log-text {font-family: sans-serif; font-style: normal; font-weight: lighter; font-size: 8pt; color:black;}
-.big-header { font-family: sans-serif; font-style: normal; font-weight: bold; font-size: 9pt; color: white; border-top:10px solid white;}
-.light-row {background:#FFFFFF}
-.dark-row {background:#EEEEFF}
-.header {background:#99AADD}
-#indent {word-wrap : break-word;width :300px;text-indent:10px;}
-</STYLE>
+body
+{
+  font-family: helvetica,"microsoft sans serif",arial,sans-serif;
+  color: #000;
+  background: #FFF;
+  margin:0 auto;
+  width:990px;
+}
+
+p {
+    padding-bottom: 16px;
+}
+
+div.wrap
+{
+  text-align: left;
+}
+
+#content
+{
+  margin: 0px;
+  padding: 0px;
+  margin-left: 45px;
+  margin-right: 45px;
+  margin-bottom: 45px;
+}
+
+div.logo
+{
+  padding: 0px;
+  margin: 0px;
+  padding-top: 15px;
+  padding-bottom: 7px;
+  padding-left: 45px;
+  display: block;
+  clear: left;
+}
+
+div.logo img
+{
+  border: none;
+}
+
+div.logo img
+{
+  border: none;
+}
+
+h2.docstitle
+{
+  border: none;
+  margin: 0px;
+  padding: 0px;
+  font-weight: lighter;
+  font-family: Univers, Helvetica, Verdana, Arial, sans-serif;
+  font-size: 1.4em;
+  color: black;
+  letter-spacing: 0.03em 
+  text-align: center;
+}
+
+h2.docstitle a
+{
+    font-size: 20px;
+    color: #fff;
+    background: url(/img/blue-h3.png) repeat-x center;
+    text-align: center;
+    text-decoration: none;
+    height: 36px;
+    line-height: 35px;
+    text-shadow: 0 -1px 0 rgba(0,0,0, .2);
+    font-weight: normal;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0,0,0, .4);
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -webkit-box-shadow: 0 1px 2px rgba(0,0,0, .4);
+    -moz-box-shadow: 0 1px 2px rgba(0,0,0, .4);
+    margin: 0;
+    padding: 10px 10px 7px 10px;
+}
+
+div.clearer
+{
+  border-bottom: 1px solid #ccc;
+}
+
+div.body
+{
+  padding: 0.5em 45px 0.5em 45px;
+}
+
+div.body p.caption
+{
+  font-style: italic;
+  font-size: small;
+}
+
+div.bodywrapper
+{
+  /*margin-right: 280px;*/
+  border: none;
+}
+
+h1,h2,h3
+{
+  font-family: Univers, Helvetica, Verdana, Arial, sans-serif;
+  color: #0A2742;
+  font-weight: lighter;
+}
+
+a,a.reference
+{
+  color: #1A3752;
+  text-decoration: underline;
+}
+
+a:hover
+{
+  color: #3366CC;
+}
+
+div.footer
+{
+  background-color: #000;
+}
+
+div.documentwrapper
+{
+  width: auto;
+}
+
+div.footer {
+    background-color: #E3EFF1;
+    color: #86989B;
+    padding: 3px 8px 3px 0;
+    padding-bottom: 3px;
+    clear: both;
+    font-size: 0.8em;
+    text-align: right;
+}
+
+div.document, div.header, div.footer {
+    background: url(/img/back-web.png) repeat-y;
+    margin: 0 auto;
+    margin-top: 0px;
+    padding-bottom: 0px;
+    box-shadow: 0 6px 20px rgba(0,0,0, .4);
+    -webkit-box-shadow: 0 6px 20px rgba(0,0,0, .4);
+    -moz-box-shadow: 0 6px 20px rgba(0,0,0, .4);
+    zoom: 1;
+    filter: progid:DXImageTransform.Microsoft.Shadow(color='#969696', Direction=135, Strength=6);
+}
+
+div.header {
+    background: url(/img/world-home.jpg);
+}
+
+div.document {
+    min-height: 200px;
+}
+
+div.social-container{
+    float:right;
+    position:relative;
+    top:10px;
+}
+
+#social{ float:right; margin:45px 55px; padding:0; clear:right;  width:265px;}
+#social li{ list-style:none; display:inline !important;margin-left:5px;}
+/*#twitter, #gplus*/
+#social a { width:inherit; height:35px; display:inline-block; line-height:100px; overflow:hidden; float:right;}
+#twitter { background:url(/img/sprite.png) -228px -10px; width:115px !important; float:right;        -moz-transition: all 0.5s ease-in-out;  -webkit-transition: all 0.5s ease-in-out;   transition: all 0.5s ease-in-out; }
+#gplus { background:url(/img/sprite.png) -150px -5px; width:25px !important; float:right;        -moz-transition: all 0.5s ease-in-out;  -webkit-transition: all 0.5s ease-in-out;   transition: all 0.5s ease-in-out;}
+#twitter:hover { background:url(/img/sprite.png) -228px -60px;         }
+#gplus:hover { background:url(/img/sprite.png) -150px -55px;  }

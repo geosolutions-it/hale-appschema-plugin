@@ -13,11 +13,44 @@
         <relativePath>../../..</relativePath>
     </parent>
 
+    <properties>
+        <dropins.archive>dropins-appschema-plugin</dropins.archive>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
                 <artifactId>tycho-packaging-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>package-dropins-archive</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <target>
+                                <unzip src="${project.build.directory}/${project.build.finalName}.zip"
+                                    dest="${project.build.directory}/exploded"/>
+                                <copy
+                                    todir="${project.build.directory}/exploded/dropins-base/dropins/eclipse/appschema/">
+                                    <fileset dir="${project.build.directory}/repository/plugins"/>
+                                </copy>
+                                <zip
+                                    destfile="${project.build.directory}/repository/${dropins.archive}-${project.version}.zip"
+                                    basedir="${project.build.directory}/exploded/dropins-base"/>
+                                <zip destfile="${project.build.directory}/${project.build.finalName}.zip"
+                                    basedir="${project.build.directory}/repository" update="true"/>
+                                <delete dir="${project.build.directory}/exploded"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
         <resources>
