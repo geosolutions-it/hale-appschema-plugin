@@ -10,7 +10,7 @@
         <groupId>it.geosolutions</groupId>
         <artifactId>hale-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
-        <relativePath>../../..</relativePath>
+        <relativePath>../..</relativePath>
     </parent>
 
     <properties>
