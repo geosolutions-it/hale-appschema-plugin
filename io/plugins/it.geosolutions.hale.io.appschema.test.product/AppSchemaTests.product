@@ -122,7 +122,6 @@
       <plugin id="it.geosolutions.hale.io.appschema"/>
       <plugin id="it.geosolutions.hale.io.appschema.model.jaxb"/>
       <plugin id="it.geosolutions.hale.io.appschema.test" fragment="true"/>
-      <plugin id="it.geosolutions.hale.io.appschema.test.product"/>
       <plugin id="it.geosolutions.imageio-ext.tiff"/>
       <plugin id="it.geosolutions.imageio-ext.utilities"/>
       <plugin id="jai.jai-codec"/>
