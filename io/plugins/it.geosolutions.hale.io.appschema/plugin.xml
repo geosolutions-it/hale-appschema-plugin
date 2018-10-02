@@ -90,5 +90,17 @@
             priority="normal">
       </content-type>
    </extension>
+   <extension
+         id="AppSchemaTests"
+         point="org.eclipse.core.runtime.products">
+      <product
+            application="de.fhg.igd.equinox.test"
+            name="AppSchemaTests">
+         <property
+               name="appName"
+               value="AppSchemaTests">
+         </property>
+      </product>
+   </extension>
 
 </plugin>

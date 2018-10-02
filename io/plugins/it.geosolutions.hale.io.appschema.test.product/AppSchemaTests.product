@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.5"?>
 
-<product name="AppSchemaTests" uid="it.geosolutions.hale.appschema.tests" id="it.geosolutions.hale.io.appschema.test.product.AppSchemaTests" application="de.fhg.igd.equinox.test" version="3.5.0.qualifier" useFeatures="false" includeLaunchers="true">
+<product name="AppSchemaTests" uid="it.geosolutions.hale.appschema.tests" id="it.geosolutions.hale.io.appschema.AppSchemaTests" application="de.fhg.igd.equinox.test" version="3.5.0.qualifier" useFeatures="false" includeLaunchers="true">
 
    <configIni use="default">
    </configIni>
@@ -22,7 +22,6 @@
    <windowImages/>
 
    <launcher name="hale_appschema_tests">
-      <solaris/>
       <win useIco="false">
          <bmp/>
       </win>
@@ -80,9 +79,12 @@
       <plugin id="eu.esdihumboldt.cst.functions.numeric"/>
       <plugin id="eu.esdihumboldt.cst.functions.string"/>
       <plugin id="eu.esdihumboldt.hale.common.align"/>
+      <plugin id="eu.esdihumboldt.hale.common.align.groovy"/>
       <plugin id="eu.esdihumboldt.hale.common.align.io.model.jaxb"/>
       <plugin id="eu.esdihumboldt.hale.common.cache"/>
       <plugin id="eu.esdihumboldt.hale.common.convert"/>
+      <plugin id="eu.esdihumboldt.hale.common.convert.core"/>
+      <plugin id="eu.esdihumboldt.hale.common.convert.wkt"/>
       <plugin id="eu.esdihumboldt.hale.common.core"/>
       <plugin id="eu.esdihumboldt.hale.common.core.io.project.model.jaxb"/>
       <plugin id="eu.esdihumboldt.hale.common.filter"/>
@@ -102,9 +104,9 @@
       <plugin id="eu.esdihumboldt.hale.io.gml"/>
       <plugin id="eu.esdihumboldt.hale.io.gml.geometry"/>
       <plugin id="eu.esdihumboldt.hale.io.groovy"/>
+      <plugin id="eu.esdihumboldt.hale.io.jdbc"/>
       <plugin id="eu.esdihumboldt.hale.io.shp"/>
       <plugin id="eu.esdihumboldt.hale.io.xsd"/>
-      <plugin id="eu.esdihumboldt.hale.io.jdbc"/>
       <plugin id="eu.esdihumboldt.hale.server.logback.config" fragment="true"/>
       <plugin id="eu.esdihumboldt.hale.ui.logback.config" fragment="true"/>
       <plugin id="eu.esdihumboldt.hale.util.nonosgi"/>
@@ -119,7 +121,6 @@
       <plugin id="findbugsAnnotations"/>
       <plugin id="gnu.trove"/>
       <plugin id="groovy"/>
-      <plugin id="groovy-all"/>
       <plugin id="it.geosolutions.hale.io.appschema"/>
       <plugin id="it.geosolutions.hale.io.appschema.model.jaxb"/>
       <plugin id="it.geosolutions.hale.io.appschema.test" fragment="true"/>
@@ -127,6 +128,7 @@
       <plugin id="it.geosolutions.imageio-ext.utilities"/>
       <plugin id="jai.jai-codec"/>
       <plugin id="jai.jai-imageio"/>
+      <plugin id="javax.annotation"/>
       <plugin id="javax.annotation.extensions" fragment="true"/>
       <plugin id="javax.inject"/>
       <plugin id="javax.mail"/>
@@ -140,6 +142,7 @@
       <plugin id="log4j.over.slf4j"/>
       <plugin id="net.java.dev.jsr-275"/>
       <plugin id="net.sf.ehcache.core"/>
+      <plugin id="net.sourceforge.schemacrawler"/>
       <plugin id="org.apache.commons.codec"/>
       <plugin id="org.apache.commons.collections"/>
       <plugin id="org.apache.commons.compress"/>
@@ -150,6 +153,7 @@
       <plugin id="org.apache.commons.lang"/>
       <plugin id="org.apache.commons.logging"/>
       <plugin id="org.apache.commons.pool"/>
+      <plugin id="org.apache.felix.scr"/>
       <plugin id="org.apache.httpcomponents.fluent-hc"/>
       <plugin id="org.apache.httpcomponents.httpclient"/>
       <plugin id="org.apache.httpcomponents.httpcore"/>
@@ -165,7 +169,6 @@
       <plugin id="org.eclipse.core.contenttype"/>
       <plugin id="org.eclipse.core.jobs"/>
       <plugin id="org.eclipse.core.runtime"/>
-      <plugin id="org.eclipse.core.runtime.compatibility.registry" fragment="true"/>
       <plugin id="org.eclipse.emf.common"/>
       <plugin id="org.eclipse.emf.ecore"/>
       <plugin id="org.eclipse.equinox.app"/>
@@ -175,11 +178,13 @@
       <plugin id="org.eclipse.equinox.region" fragment="true"/>
       <plugin id="org.eclipse.equinox.registry"/>
       <plugin id="org.eclipse.equinox.simpleconfigurator"/>
+      <plugin id="org.eclipse.equinox.supplement"/>
       <plugin id="org.eclipse.equinox.transforms.hook" fragment="true"/>
-      <plugin id="org.eclipse.equinox.weaving.aspectj"/>
       <plugin id="org.eclipse.equinox.weaving.hook" fragment="true"/>
       <plugin id="org.eclipse.osgi"/>
       <plugin id="org.eclipse.osgi.compatibility.state" fragment="true"/>
+      <plugin id="org.eclipse.osgi.services"/>
+      <plugin id="org.eclipse.osgi.util"/>
       <plugin id="org.eclipse.xsd"/>
       <plugin id="org.geotools"/>
       <plugin id="org.glassfish.hk2.api"/>
@@ -198,8 +203,10 @@
       <plugin id="org.junit"/>
       <plugin id="org.jvnet.jaxb2_commons.jaxb2-basics-runtime"/>
       <plugin id="org.kohsuke.groovy.sandbox"/>
+      <plugin id="org.objectweb.asm"/>
       <plugin id="org.objectweb.asm-5"/>
       <plugin id="org.objectweb.asm.analysis-5"/>
+      <plugin id="org.objectweb.asm.tree"/>
       <plugin id="org.objectweb.asm.tree-5"/>
       <plugin id="org.objectweb.asm.util-5"/>
       <plugin id="org.opengis"/>
@@ -224,11 +231,19 @@
    </plugins>
 
    <configurations>
+      <plugin id="eu.esdihumboldt.cst" autoStart="true" startLevel="0" />
+      <plugin id="eu.esdihumboldt.hale.common.convert" autoStart="true" startLevel="0" />
+      <plugin id="eu.esdihumboldt.hale.common.convert.core" autoStart="true" startLevel="0" />
+      <plugin id="eu.esdihumboldt.hale.common.convert.wkt" autoStart="true" startLevel="0" />
+      <plugin id="eu.esdihumboldt.hale.common.instance" autoStart="true" startLevel="0" />
+      <plugin id="eu.esdihumboldt.hale.io.gml" autoStart="true" startLevel="0" />
       <plugin id="org.eclipse.core.runtime" autoStart="true" startLevel="0" />
       <plugin id="org.eclipse.equinox.common" autoStart="true" startLevel="2" />
-      <plugin id="org.eclipse.equinox.ds" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.simpleconfigurator" autoStart="true" startLevel="1" />
-      <plugin id="org.eclipse.equinox.weaving.aspectj" autoStart="true" startLevel="2" />
+      <plugin id="org.springframework.aop" autoStart="true" startLevel="0" />
+      <plugin id="org.springframework.beans" autoStart="true" startLevel="0" />
+      <plugin id="org.springframework.context" autoStart="true" startLevel="0" />
+      <plugin id="org.springframework.core" autoStart="true" startLevel="0" />
    </configurations>
 
 </product>
