@@ -12,3 +12,4 @@ Export-Package: it.geosolutions.hale.io.appschema.impl.internal.generate
 Import-Package: javax.xml.bind;resolution:=optional,javax.xml.bind.annot
  ation;resolution:=optional,javax.xml.bind.annotation.adapters;resolutio
  n:=optional,javax.xml.namespace;resolution:=optional
+Automatic-Module-Name: it.geosolutions.hale.io.appschema.model.jaxb

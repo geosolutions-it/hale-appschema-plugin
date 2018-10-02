@@ -31,3 +31,4 @@ Import-Package: com.google.common.base;version="17.0.0",
  eu.esdihumboldt.util.io
 Export-Package: it.geosolutions.hale.io.appschema.ui
 Bundle-Activator: it.geosolutions.hale.io.appschema.ui.AppSchemaUIPlugin
+Automatic-Module-Name: it.geosolutions.hale.io.appschema.ui
