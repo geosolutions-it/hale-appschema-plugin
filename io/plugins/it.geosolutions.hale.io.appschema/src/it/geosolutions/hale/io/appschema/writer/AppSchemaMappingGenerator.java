@@ -100,6 +100,7 @@ public class AppSchemaMappingGenerator {
 	 * @param targetSchemaSpace the target schema space
 	 * @param dataStore the DataStore configuration to use
 	 * @param chainingConf the feature chaining configuration
+	 * @param workspaceConf the workspace configuration
 	 */
 	public AppSchemaMappingGenerator(Alignment alignment, SchemaSpace targetSchemaSpace,
 			DataStore dataStore, FeatureChaining chainingConf, WorkspaceConfiguration workspaceConf) {
