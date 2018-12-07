@@ -35,7 +35,7 @@
                                 <unzip src="${project.build.directory}/${project.build.finalName}.zip"
                                     dest="${project.build.directory}/exploded"/>
                                 <copy
-                                    todir="${project.build.directory}/exploded/dropins-base/dropins/eclipse/appschema/">
+                                    todir="${project.build.directory}/exploded/dropins-base/dropins/appschema/eclipse/plugins/">
                                     <fileset dir="${project.build.directory}/repository/plugins"/>
                                 </copy>
                                 <zip
