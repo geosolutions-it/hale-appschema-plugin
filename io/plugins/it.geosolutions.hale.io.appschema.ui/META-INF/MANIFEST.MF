@@ -4,7 +4,6 @@ Bundle-Name: GeoServer App-Schema I/O UI
 Bundle-SymbolicName: it.geosolutions.hale.io.appschema.ui;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: GeoSolutions
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.eclipse.ui;bundle-version="3.6.2",
  org.eclipse.core.runtime;bundle-version="3.6.0",
  eu.esdihumboldt.hale.ui,
