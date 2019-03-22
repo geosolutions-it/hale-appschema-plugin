@@ -15,13 +15,6 @@
 
 package it.geosolutions.hale.io.appschema.ui;
 
-import it.geosolutions.hale.io.appschema.AppSchemaIO;
-import it.geosolutions.hale.io.appschema.model.WorkspaceConfiguration;
-import it.geosolutions.hale.io.appschema.model.WorkspaceMetadata;
-import it.geosolutions.hale.io.appschema.ui.FeatureChainingConfigurationPage.ChainPage;
-import it.geosolutions.hale.io.appschema.writer.AbstractAppSchemaConfigurator;
-import it.geosolutions.hale.io.appschema.writer.AppSchemaMappingGenerator;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -58,11 +51,18 @@ import com.google.common.base.Joiner;
 import eu.esdihumboldt.hale.common.core.io.impl.ComplexValue;
 import eu.esdihumboldt.hale.common.core.io.report.impl.DefaultIOReporter;
 import eu.esdihumboldt.hale.common.core.io.report.impl.IOMessageImpl;
+import eu.esdihumboldt.hale.ui.common.viewers.CenteredImageCellLabelProvider;
+import eu.esdihumboldt.hale.ui.io.ExportWizard;
+import eu.esdihumboldt.hale.ui.io.config.AbstractConfigurationPage;
+import it.geosolutions.hale.io.appschema.AppSchemaIO;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AppSchemaDataAccessType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.NamespacesPropertyType.Namespace;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.TypeMappingsPropertyType.FeatureTypeMapping;
-import eu.esdihumboldt.hale.ui.io.ExportWizard;
-import eu.esdihumboldt.hale.ui.io.config.AbstractConfigurationPage;
+import it.geosolutions.hale.io.appschema.model.WorkspaceConfiguration;
+import it.geosolutions.hale.io.appschema.model.WorkspaceMetadata;
+import it.geosolutions.hale.io.appschema.ui.FeatureChainingConfigurationPage.ChainPage;
+import it.geosolutions.hale.io.appschema.writer.AbstractAppSchemaConfigurator;
+import it.geosolutions.hale.io.appschema.writer.AppSchemaMappingGenerator;
 
 /**
  * Configuration page for workspace related settings.
@@ -75,8 +75,7 @@ import eu.esdihumboldt.hale.ui.io.config.AbstractConfigurationPage;
  * 
  * @author Stefano Costa, GeoSolutions
  */
-public class WorkspaceConfigurationPage
-		extends
+public class WorkspaceConfigurationPage extends
 		AbstractConfigurationPage<AbstractAppSchemaConfigurator, ExportWizard<AbstractAppSchemaConfigurator>> {
 
 	private static Pattern XML_NAME_PATTERN;
@@ -95,8 +94,8 @@ public class WorkspaceConfigurationPage
 
 	private static final Image CHECKED = AppSchemaUIPlugin.getImageDescriptor("icons/checked.gif")
 			.createImage();
-	private static final Image UNCHECKED = AppSchemaUIPlugin.getImageDescriptor(
-			"icons/unchecked.gif").createImage();
+	private static final Image UNCHECKED = AppSchemaUIPlugin
+			.getImageDescriptor("icons/unchecked.gif").createImage();
 
 	private IPageChangingListener changeListener;
 	private final WorkspaceConfiguration workspaceConf;
@@ -109,8 +108,9 @@ public class WorkspaceConfigurationPage
 	public WorkspaceConfigurationPage() {
 		super("workspace.conf");
 		setTitle("Configure workspaces");
-		setDescription("If needed, edit the name of a workspace and mark it as isolated to avoid name clashes with "
-				+ "feature types already published in GeoServer.");
+		setDescription(
+				"If needed, edit the name of a workspace and mark it as isolated to avoid name clashes with "
+						+ "feature types already published in GeoServer.");
 		setPageComplete(true);
 		workspaceConf = new WorkspaceConfiguration();
 	}
@@ -268,10 +268,10 @@ public class WorkspaceConfigurationPage
 		gridData.minimumHeight = 150;
 		tableParent.setLayoutData(gridData);
 
-		workspaceTableViewer = new TableViewer(tableParent, SWT.H_SCROLL | SWT.V_SCROLL
-				| SWT.BORDER);
-		workspaceTableViewer.getControl().setLayoutData(
-				new GridData(SWT.FILL, SWT.FILL, true, true, 3, 2));
+		workspaceTableViewer = new TableViewer(tableParent,
+				SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION);
+		workspaceTableViewer.getControl()
+				.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 2));
 		workspaceTableViewer.setContentProvider(ArrayContentProvider.getInstance());
 		workspaceTableViewer.getTable().setHeaderVisible(true);
 		workspaceTableViewer.getTable().setLinesVisible(true);
@@ -318,7 +318,8 @@ public class WorkspaceConfigurationPage
 					Object currentPage = event.getCurrentPage();
 					Object targetPage = event.getTargetPage();
 
-					if ((currentPage instanceof FeatureChainingConfigurationPage || currentPage instanceof ChainPage)
+					if ((currentPage instanceof FeatureChainingConfigurationPage
+							|| currentPage instanceof ChainPage)
 							&& targetPage instanceof WorkspaceConfigurationPage) {
 						goingBack = false;
 					}
@@ -349,19 +350,8 @@ public class WorkspaceConfigurationPage
 		}
 	}
 
-	private class WorkspaceIsolatedLabelProvider extends ColumnLabelProvider {
+	private class WorkspaceIsolatedLabelProvider extends CenteredImageCellLabelProvider {
 
-		/**
-		 * @see org.eclipse.jface.viewers.ColumnLabelProvider#getText(java.lang.Object)
-		 */
-		@Override
-		public String getText(Object element) {
-			return null;
-		}
-
-		/**
-		 * @see org.eclipse.jface.viewers.ColumnLabelProvider#getImage(java.lang.Object)
-		 */
 		@Override
 		public Image getImage(Object element) {
 			WorkspaceMetadata conf = (WorkspaceMetadata) element;
@@ -488,7 +478,7 @@ public class WorkspaceConfigurationPage
 		 */
 		@Override
 		protected CellEditor getCellEditor(Object element) {
-			return new CheckboxCellEditor(null, SWT.CHECK | SWT.READ_ONLY);
+			return new CheckboxCellEditor(viewer.getTable());
 		}
 
 		/**
