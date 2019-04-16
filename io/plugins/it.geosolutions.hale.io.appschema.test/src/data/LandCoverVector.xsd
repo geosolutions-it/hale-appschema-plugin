@@ -154,6 +154,7 @@ A Land Cover Unit being part of the data set.
 A Land Cover dataset is a collection of LandCover units, each one being called an element.</documentation>
 						</annotation>
 					</element>
+					<element name="referenceMember" type="gml:ReferenceType" maxOccurs="unbounded"/>
 				</sequence>
 			</extension>
 		</complexContent>

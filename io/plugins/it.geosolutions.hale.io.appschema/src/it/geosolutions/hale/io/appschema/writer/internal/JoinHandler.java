@@ -16,6 +16,7 @@
 package it.geosolutions.hale.io.appschema.writer.internal;
 
 import static eu.esdihumboldt.hale.common.align.model.functions.JoinFunction.PARAMETER_JOIN;
+import static it.geosolutions.hale.io.appschema.AppSchemaIO.isReferenceType;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.findOwningType;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.findOwningTypePath;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.getSortedJoinConditions;
@@ -23,11 +24,6 @@ import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.get
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.getTargetProperty;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.getTargetType;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.isHRefAttribute;
-import it.geosolutions.hale.io.appschema.model.ChainConfiguration;
-import it.geosolutions.hale.io.appschema.model.FeatureChaining;
-import it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils;
-import it.geosolutions.hale.io.appschema.writer.internal.mapping.AppSchemaMappingContext;
-import it.geosolutions.hale.io.appschema.writer.internal.mapping.AppSchemaMappingWrapper;
 
 import java.util.Collection;
 import java.util.List;
@@ -48,6 +44,11 @@ import eu.esdihumboldt.hale.common.schema.model.TypeDefinition;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeExpressionMappingType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeMappingType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.TypeMappingsPropertyType.FeatureTypeMapping;
+import it.geosolutions.hale.io.appschema.model.ChainConfiguration;
+import it.geosolutions.hale.io.appschema.model.FeatureChaining;
+import it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils;
+import it.geosolutions.hale.io.appschema.writer.internal.mapping.AppSchemaMappingContext;
+import it.geosolutions.hale.io.appschema.writer.internal.mapping.AppSchemaMappingWrapper;
 
 /**
  * Translates a type cell specifying a {@link Join} transformation function to
@@ -122,9 +123,6 @@ public class JoinHandler implements TypeTransformationHandler {
 			TypeEntityDefinition containerType = AlignmentUtil.getTypeEntity(baseProperty);
 			TypeEntityDefinition nestedType = AlignmentUtil.getTypeEntity(joinProperty);
 
-			// build FeatureTypeMapping for container type
-//			Entity containerTypeTarget = typeCell.getTarget().values().iterator().next();
-//			TypeDefinition containerTypeTargetType = containerTypeTarget.getDefinition().getType();
 			EntityDefinition containerTypeTarget = null;
 			TypeDefinition containerTypeTargetType = null;
 			String containerTypeTargetMappingName = null;
@@ -143,8 +141,8 @@ public class JoinHandler implements TypeTransformationHandler {
 			if (previousChainConf != null) {
 				containerMappingName = previousChainConf.getMappingName();
 			}
-			FeatureTypeMapping containerFTMapping = context.getOrCreateFeatureTypeMapping(
-					containerTypeTargetType, containerMappingName);
+			FeatureTypeMapping containerFTMapping = context
+					.getOrCreateFeatureTypeMapping(containerTypeTargetType, containerMappingName);
 			containerFTMapping
 					.setSourceType(containerType.getDefinition().getName().getLocalPart());
 
@@ -156,12 +154,18 @@ public class JoinHandler implements TypeTransformationHandler {
 			if (chainConf != null) {
 				nestedFT = chainConf.getNestedTypeTarget().getDefinition().getPropertyType();
 				nestedFTPath = chainConf.getNestedTypeTarget().getPropertyPath();
-				// remove last element
-				nestedFTPath = nestedFTPath.subList(0, nestedFTPath.size() - 1);
+				// remove last element (only if is is not a ReferenceType type)
+				if (!isReferenceType(nestedFT)) {
+					nestedFTPath = nestedFTPath.subList(0, nestedFTPath.size() - 1);
+				}
+				// if exists a linked type for reference case, assign it
+				if (chainConf.getReferenceLinkedType() != null)
+					nestedFT = chainConf.getReferenceLinkedType();
 				nestedFTMapping = context.getOrCreateFeatureTypeMapping(nestedFT,
 						chainConf.getMappingName());
 				nestedFTMapping.setSourceType(nestedType.getDefinition().getName().getLocalPart());
 			}
+			// chainConf == null
 			else {
 				if (joinParameter.getTypes().size() > 2) {
 					throw new IllegalArgumentException(
@@ -183,23 +187,23 @@ public class JoinHandler implements TypeTransformationHandler {
 							// findOwningFeatureType(targetProperty.getDefinition());
 							nestedFT = findOwningType(targetProperty.getDefinition(),
 									context.getRelevantTargetTypes());
-							if (nestedFT != null
-									&& !nestedFT.getName()
-											.equals(containerTypeTargetType.getName())) {
+							if (nestedFT != null && !nestedFT.getName()
+									.equals(containerTypeTargetType.getName())) {
 								// target property belongs to a feature type
 								// different from the already mapped one: build
 								// a new mapping
 								nestedFTPath = findOwningTypePath(targetProperty.getDefinition(),
 										context.getRelevantTargetTypes());
 								nestedFTMapping = context.getOrCreateFeatureTypeMapping(nestedFT);
-								nestedFTMapping.setSourceType(nestedType.getDefinition().getName()
-										.getLocalPart());
+								nestedFTMapping.setSourceType(
+										nestedType.getDefinition().getName().getLocalPart());
 
 								// I assume at most 2 FeatureTypes are involved
 								// in the join
 								break;
 							}
-							else if (isHRefAttribute(targetProperty.getDefinition().getDefinition())) {
+							else if (isHRefAttribute(
+									targetProperty.getDefinition().getDefinition())) {
 								// check if target property is a href attribute
 								Property hrefProperty = targetProperty;
 								List<ChildContext> hrefPropertyPath = hrefProperty.getDefinition()
@@ -217,8 +221,8 @@ public class JoinHandler implements TypeTransformationHandler {
 									nestedFTPath = hrefContainerPath;
 									nestedFTMapping = context
 											.getOrCreateFeatureTypeMapping(childFT);
-									nestedFTMapping.setSourceType(nestedType.getDefinition()
-											.getName().getLocalPart());
+									nestedFTMapping.setSourceType(
+											nestedType.getDefinition().getName().getLocalPart());
 
 									// I assume at most 2 FeatureTypes are
 									// involved in the join
@@ -234,8 +238,8 @@ public class JoinHandler implements TypeTransformationHandler {
 			if (nestedFTMapping != null && nestedFTPath != null) {
 				AttributeMappingType containerJoinMapping = context.getOrCreateAttributeMapping(
 						containerTypeTargetType, containerTypeTargetMappingName, nestedFTPath);
-				containerJoinMapping.setTargetAttribute(mapping.buildAttributeXPath(
-						containerTypeTargetType, nestedFTPath));
+				containerJoinMapping.setTargetAttribute(
+						mapping.buildAttributeXPath(containerTypeTargetType, nestedFTPath));
 				// set isMultiple attribute
 				PropertyDefinition targetPropertyDef = nestedFTPath.get(nestedFTPath.size() - 1)
 						.getChild().asProperty();
@@ -279,4 +283,5 @@ public class JoinHandler implements TypeTransformationHandler {
 			return nestedFeatureTypeMapping.getTargetElement();
 		}
 	}
+
 }

@@ -15,6 +15,7 @@
 
 package it.geosolutions.hale.io.appschema.writer.internal;
 
+import static it.geosolutions.hale.io.appschema.AppSchemaIO.isHrefClientPropertyCompatible;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.QNAME_XSI_NIL;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.XSI_PREFIX;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.XSI_URI;
@@ -28,13 +29,9 @@ import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.isN
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.isNilReason;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.isNillable;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.isXmlAttribute;
-import it.geosolutions.hale.io.appschema.model.ChainConfiguration;
-import it.geosolutions.hale.io.appschema.model.FeatureChaining;
-import it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils;
-import it.geosolutions.hale.io.appschema.writer.internal.mapping.AppSchemaMappingContext;
-import it.geosolutions.hale.io.appschema.writer.internal.mapping.AppSchemaMappingWrapper;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.xml.namespace.QName;
 
@@ -57,20 +54,26 @@ import eu.esdihumboldt.hale.common.align.model.impl.PropertyEntityDefinition;
 import eu.esdihumboldt.hale.common.schema.model.Definition;
 import eu.esdihumboldt.hale.common.schema.model.PropertyDefinition;
 import eu.esdihumboldt.hale.common.schema.model.TypeDefinition;
+import eu.esdihumboldt.hale.io.xsd.constraint.XmlAttributeFlag;
+import it.geosolutions.hale.io.appschema.AppSchemaIO;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeExpressionMappingType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeMappingType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeMappingType.ClientProperty;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.NamespacesPropertyType.Namespace;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.TypeMappingsPropertyType.FeatureTypeMapping;
-import eu.esdihumboldt.hale.io.xsd.constraint.XmlAttributeFlag;
+import it.geosolutions.hale.io.appschema.model.ChainConfiguration;
+import it.geosolutions.hale.io.appschema.model.FeatureChaining;
+import it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils;
+import it.geosolutions.hale.io.appschema.writer.internal.mapping.AppSchemaMappingContext;
+import it.geosolutions.hale.io.appschema.writer.internal.mapping.AppSchemaMappingWrapper;
 
 /**
  * Base class for property transformation handlers.
  * 
  * @author Stefano Costa, GeoSolutions
  */
-public abstract class AbstractPropertyTransformationHandler implements
-		PropertyTransformationHandler {
+public abstract class AbstractPropertyTransformationHandler
+		implements PropertyTransformationHandler {
 
 	private static final ALogger log = ALoggerFactory
 			.getLogger(AbstractPropertyTransformationHandler.class);
@@ -124,7 +127,10 @@ public abstract class AbstractPropertyTransformationHandler implements
 			if (context.getFeatureChaining() != null) {
 				ChainConfiguration chainConf = findChainConfiguration(context);
 				if (chainConf != null) {
-					featureType = chainConf.getNestedTypeTargetType();
+					// check if is a ReferenceType with a linked proper type
+					featureType = chainConf.getReferenceLinkedType() == null
+							? chainConf.getNestedTypeTargetType()
+							: chainConf.getReferenceLinkedType();
 					mappingName = chainConf.getMappingName();
 				}
 			}
@@ -146,7 +152,20 @@ public abstract class AbstractPropertyTransformationHandler implements
 				List<ChainConfiguration> chains = context.getFeatureChaining().getChains(joinId);
 				ChainConfiguration chainConf = findLongestNestedPath(
 						targetPropertyEntityDef.getPropertyPath(), chains);
-				if (chainConf != null && !chainConf.getNestedTypeTargetType().equals(featureType)) {
+				// check HREF with use case
+				Optional<EntityDefinition> definitionOpt = propertyCell.getTarget().values()
+						.stream().findFirst().map(x -> x.getDefinition());
+				final TypeDefinition ftypeFinal = featureType;
+				boolean isSameParentType = definitionOpt.map(x -> x.getType()).map(x -> x.getName())
+						.filter(x -> x.equals(ftypeFinal.getName())).isPresent();
+				Optional<QName> childName = definitionOpt.map(x -> x.getLastPathElement())
+						.map(x -> x.getChild()).map(x -> x.getName());
+				boolean isHrefAttribute = childName.filter(x -> "href".equals(x.getLocalPart()))
+						.isPresent();
+				if (chainConf != null
+						&& !(isHrefClientPropertyCompatible(propertyCell) && isHrefAttribute
+								&& isSameParentType)
+						&& !chainConf.getNestedTypeTargetType().equals(featureType)) {
 					// don't translate mapping, will do it (or have done it)
 					// elsewhere!
 					featureType = null;
@@ -157,8 +176,9 @@ public abstract class AbstractPropertyTransformationHandler implements
 
 		if (featureType != null) {
 			// fetch FeatureTypeMapping from mapping configuration
-			this.featureTypeMapping = context.getOrCreateFeatureTypeMapping(featureType,
-					mappingName);
+			if (!AppSchemaIO.isReferenceType(featureType))
+				this.featureTypeMapping = context.getOrCreateFeatureTypeMapping(featureType,
+						mappingName);
 
 			// TODO: verify source property (if any) belongs to mapped source
 			// type
@@ -350,12 +370,13 @@ public abstract class AbstractPropertyTransformationHandler implements
 				// set targetAttribute if empty
 				if (attributeMapping.getTargetAttribute() == null
 						|| attributeMapping.getTargetAttribute().isEmpty()) {
-					attributeMapping.setTargetAttribute(mapping.buildAttributeXPath(featureType,
-							parentPropertyPath));
+					attributeMapping.setTargetAttribute(
+							mapping.buildAttributeXPath(featureType, parentPropertyPath));
 				}
 
-				Namespace targetPropNS = context.getOrCreateNamespace(targetPropertyDef.getName()
-						.getNamespaceURI(), targetPropertyDef.getName().getPrefix());
+				Namespace targetPropNS = context.getOrCreateNamespace(
+						targetPropertyDef.getName().getNamespaceURI(),
+						targetPropertyDef.getName().getPrefix());
 				String unqualifiedName = targetPropertyDef.getName().getLocalPart();
 				boolean isQualified = targetPropNS != null
 						&& !Strings.isNullOrEmpty(targetPropNS.getPrefix());
@@ -363,8 +384,9 @@ public abstract class AbstractPropertyTransformationHandler implements
 				// encode attribute as <ClientProperty>
 				ClientProperty clientProperty = new ClientProperty();
 				@SuppressWarnings("null")
-				String clientPropName = (isQualified) ? targetPropNS.getPrefix() + ":"
-						+ unqualifiedName : unqualifiedName;
+				String clientPropName = (isQualified)
+						? targetPropNS.getPrefix() + ":" + unqualifiedName
+						: unqualifiedName;
 				clientProperty.setName(clientPropName);
 				clientProperty.setValue(getSourceExpressionAsCQL());
 				setEncodeIfEmpty(clientProperty);
@@ -408,8 +430,8 @@ public abstract class AbstractPropertyTransformationHandler implements
 					targetPropertyEntityDef.getPropertyPath());
 			List<ChildContext> targetPropertyPath = targetPropertyEntityDef.getPropertyPath();
 			// set target attribute
-			attributeMapping.setTargetAttribute(mapping.buildAttributeXPath(featureType,
-					targetPropertyPath));
+			attributeMapping.setTargetAttribute(
+					mapping.buildAttributeXPath(featureType, targetPropertyPath));
 		}
 
 		// set source expression
@@ -456,8 +478,8 @@ public abstract class AbstractPropertyTransformationHandler implements
 		QName geomTypeName = geometryType.getName();
 		Namespace geomNS = context.getOrCreateNamespace(geomTypeName.getNamespaceURI(),
 				geomTypeName.getPrefix());
-		attributeMapping.setTargetAttributeNode(geomNS.getPrefix() + ":"
-				+ geomTypeName.getLocalPart());
+		attributeMapping
+				.setTargetAttributeNode(geomNS.getPrefix() + ":" + geomTypeName.getLocalPart());
 
 		// set target attribute to parent (should be gml:AbstractGeometry)
 		// TODO: this is really ugly, but I don't see a better way to do it
@@ -469,8 +491,8 @@ public abstract class AbstractPropertyTransformationHandler implements
 		Definition<?> parentDef = parentEntityDef.getDefinition();
 		String parentQName = geomNS.getPrefix() + ":" + parentDef.getDisplayName();
 		List<ChildContext> targetPropertyPath = parentEntityDef.getPropertyPath();
-		attributeMapping.setTargetAttribute(mapping.buildAttributeXPath(featureType,
-				targetPropertyPath) + "/" + parentQName);
+		attributeMapping.setTargetAttribute(
+				mapping.buildAttributeXPath(featureType, targetPropertyPath) + "/" + parentQName);
 	}
 
 	/**
@@ -608,4 +630,5 @@ public abstract class AbstractPropertyTransformationHandler implements
 		}
 		return null;
 	}
+
 }
