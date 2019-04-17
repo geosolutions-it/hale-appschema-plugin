@@ -217,6 +217,7 @@
       <plugin id="org.springframework.beans"/>
       <plugin id="org.springframework.context"/>
       <plugin id="org.springframework.core"/>
+      <plugin id="org.springframework.aop"/>
       <plugin id="oro"/>
       <plugin id="picocontainer"/>
       <plugin id="ru.yandex.qatools.allure.java-adaptor-api"/>
