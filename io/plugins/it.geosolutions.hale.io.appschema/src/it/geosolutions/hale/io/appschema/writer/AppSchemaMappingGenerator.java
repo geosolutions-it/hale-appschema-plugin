@@ -39,6 +39,8 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import javax.xml.transform.stream.StreamSource;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.google.common.collect.ListMultimap;
 
 import de.fhg.igd.slf4jplus.ALogger;
@@ -51,9 +53,13 @@ import eu.esdihumboldt.hale.common.align.model.EntityDefinition;
 import eu.esdihumboldt.hale.common.core.io.report.IOReporter;
 import eu.esdihumboldt.hale.common.core.io.report.impl.IOMessageImpl;
 import eu.esdihumboldt.hale.common.schema.model.ChildDefinition;
+import eu.esdihumboldt.hale.common.schema.model.DefinitionGroup;
 import eu.esdihumboldt.hale.common.schema.model.PropertyDefinition;
 import eu.esdihumboldt.hale.common.schema.model.Schema;
 import eu.esdihumboldt.hale.common.schema.model.SchemaSpace;
+import eu.esdihumboldt.hale.common.schema.model.impl.AbstractPropertyDecorator;
+import eu.esdihumboldt.hale.common.schema.model.impl.DefaultPropertyDefinition;
+import eu.esdihumboldt.hale.common.schema.model.impl.DefaultTypeDefinition;
 import it.geosolutions.hale.io.appschema.AppSchemaIO;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AppSchemaDataAccessType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.NamespacesPropertyType.Namespace;
@@ -538,13 +544,34 @@ public class AppSchemaMappingGenerator {
 			for (ChildContext childContext : propertyPath) {
 				PropertyDefinition child = childContext.getChild().asProperty();
 				if (child != null) {
-					String namespaceURI = child.getName().getNamespaceURI();
-					String prefix = child.getName().getPrefix();
-
-					context.getOrCreateNamespace(namespaceURI, prefix);
+					// if provided prefix is blank, try to infer prefix from
+					// parent type
+					QName inferedQName = tryInferNamespacePrefix(child);
+					context.getOrCreateNamespace(inferedQName.getNamespaceURI(),
+							inferedQName.getPrefix());
 				}
 			}
 		}
+	}
+
+	static QName tryInferNamespacePrefix(PropertyDefinition child) {
+		String namespaceURI = child.getName().getNamespaceURI();
+		String prefix = child.getName().getPrefix();
+		// if provided prefix is blank, try to infer prefix from
+		// parent type
+		if (StringUtils.isBlank(prefix) && child instanceof AbstractPropertyDecorator) {
+			PropertyDefinition dpd = ((AbstractPropertyDecorator) child).getDecoratedProperty();
+			if (dpd instanceof DefaultPropertyDefinition) {
+				DefinitionGroup dg = ((DefaultPropertyDefinition) dpd).getDeclaringGroup();
+				if (dg instanceof DefaultTypeDefinition) {
+					DefaultTypeDefinition defaultType = (DefaultTypeDefinition) dg;
+					if (defaultType.getName() != null && Objects.equals(namespaceURI,
+							defaultType.getName().getNamespaceURI()))
+						prefix = defaultType.getName().getPrefix();
+				}
+			}
+		}
+		return new QName(namespaceURI, "", prefix);
 	}
 
 	private boolean isIsolated(String namespaceUri) {
