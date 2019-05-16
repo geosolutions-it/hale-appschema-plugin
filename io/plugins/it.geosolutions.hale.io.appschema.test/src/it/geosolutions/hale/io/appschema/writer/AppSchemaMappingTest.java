@@ -20,20 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import it.geosolutions.hale.io.appschema.model.FeatureChaining;
-import it.geosolutions.hale.io.appschema.writer.internal.AssignHandler;
-import it.geosolutions.hale.io.appschema.writer.internal.ClassificationHandler;
-import it.geosolutions.hale.io.appschema.writer.internal.DateExtractionHandler;
-import it.geosolutions.hale.io.appschema.writer.internal.FormattedStringHandler;
-import it.geosolutions.hale.io.appschema.writer.internal.JoinHandler;
-import it.geosolutions.hale.io.appschema.writer.internal.MathematicalExpressionHandler;
-import it.geosolutions.hale.io.appschema.writer.internal.PropertyTransformationHandler;
-import it.geosolutions.hale.io.appschema.writer.internal.PropertyTransformationHandlerFactory;
-import it.geosolutions.hale.io.appschema.writer.internal.RenameHandler;
-import it.geosolutions.hale.io.appschema.writer.internal.RetypeHandler;
-import it.geosolutions.hale.io.appschema.writer.internal.UnsupportedTransformationException;
-import it.geosolutions.hale.io.appschema.writer.internal.mapping.AppSchemaMappingContext;
-import it.geosolutions.hale.io.appschema.writer.internal.mapping.AppSchemaMappingWrapper;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -103,11 +89,27 @@ import eu.esdihumboldt.hale.common.schema.model.TypeDefinition;
 import eu.esdihumboldt.hale.common.schema.model.impl.DefaultTypeIndex;
 import eu.esdihumboldt.hale.common.schema.persist.hsd.HaleSchemaReader;
 import eu.esdihumboldt.hale.common.test.TestUtil;
+import eu.esdihumboldt.hale.io.xsd.reader.XmlSchemaReader;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AppSchemaDataAccessType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeMappingType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeMappingType.ClientProperty;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.TypeMappingsPropertyType.FeatureTypeMapping;
-import eu.esdihumboldt.hale.io.xsd.reader.XmlSchemaReader;
+import it.geosolutions.hale.io.appschema.model.ChainConfiguration;
+import it.geosolutions.hale.io.appschema.model.FeatureChaining;
+import it.geosolutions.hale.io.appschema.model.JoinConfiguration;
+import it.geosolutions.hale.io.appschema.writer.internal.AssignHandler;
+import it.geosolutions.hale.io.appschema.writer.internal.ClassificationHandler;
+import it.geosolutions.hale.io.appschema.writer.internal.DateExtractionHandler;
+import it.geosolutions.hale.io.appschema.writer.internal.FormattedStringHandler;
+import it.geosolutions.hale.io.appschema.writer.internal.JoinHandler;
+import it.geosolutions.hale.io.appschema.writer.internal.MathematicalExpressionHandler;
+import it.geosolutions.hale.io.appschema.writer.internal.PropertyTransformationHandler;
+import it.geosolutions.hale.io.appschema.writer.internal.PropertyTransformationHandlerFactory;
+import it.geosolutions.hale.io.appschema.writer.internal.RenameHandler;
+import it.geosolutions.hale.io.appschema.writer.internal.RetypeHandler;
+import it.geosolutions.hale.io.appschema.writer.internal.UnsupportedTransformationException;
+import it.geosolutions.hale.io.appschema.writer.internal.mapping.AppSchemaMappingContext;
+import it.geosolutions.hale.io.appschema.writer.internal.mapping.AppSchemaMappingWrapper;
 
 @SuppressWarnings("javadoc")
 public class AppSchemaMappingTest {
@@ -158,6 +160,7 @@ public class AppSchemaMappingTest {
 	private static TypeDefinition landCoverUnitType;
 	private static TypeDefinition landCoverDatasetType;
 	private static TypeDefinition landCoverObservationType;
+	private static TypeDefinition referenceType;
 	private static Set<TypeDefinition> targetTypes = new HashSet<TypeDefinition>();
 
 	private AppSchemaMappingWrapper mappingWrapper;
@@ -185,13 +188,15 @@ public class AppSchemaMappingTest {
 		assertNotNull(landCoverUnitType);
 		landCoverDatasetType = target.getType(new QName(LANDCOVER_NS, "LandCoverDatasetType"));
 		assertNotNull(landCoverDatasetType);
-		landCoverObservationType = target.getType(new QName(LANDCOVER_NS,
-				"LandCoverObservationType"));
+		landCoverObservationType = target
+				.getType(new QName(LANDCOVER_NS, "LandCoverObservationType"));
 		assertNotNull(landCoverObservationType);
 
 		targetTypes.add(landCoverDatasetType);
 		targetTypes.add(landCoverUnitType);
 		targetTypes.add(landCoverObservationType);
+
+		referenceType = target.getType(new QName(GML_NS, "ReferenceType"));
 	}
 
 	@Before
@@ -207,8 +212,8 @@ public class AppSchemaMappingTest {
 	}
 
 	private static Schema loadSchema(SchemaReader schemaReader, String resource) throws Exception {
-		DefaultInputSupplier input = new DefaultInputSupplier(AppSchemaMappingTest.class
-				.getResource(resource).toURI());
+		DefaultInputSupplier input = new DefaultInputSupplier(
+				AppSchemaMappingTest.class.getResource(resource).toURI());
 		schemaReader.setSharedTypes(new DefaultTypeIndex());
 		schemaReader.setSource(input);
 
@@ -227,11 +232,11 @@ public class AppSchemaMappingTest {
 		cell.setTransformationIdentifier(RetypeFunction.ID);
 
 		ListMultimap<String, Type> source = ArrayListMultimap.create();
-		source.put(null, new DefaultType(new TypeEntityDefinition(unitDenormType,
-				SchemaSpaceID.SOURCE, null)));
+		source.put(null, new DefaultType(
+				new TypeEntityDefinition(unitDenormType, SchemaSpaceID.SOURCE, null)));
 		ListMultimap<String, Type> target = ArrayListMultimap.create();
-		target.put(null, new DefaultType(new TypeEntityDefinition(landCoverUnitType,
-				SchemaSpaceID.TARGET, null)));
+		target.put(null, new DefaultType(
+				new TypeEntityDefinition(landCoverUnitType, SchemaSpaceID.TARGET, null)));
 		cell.setSource(source);
 		cell.setTarget(target);
 
@@ -366,6 +371,91 @@ public class AppSchemaMappingTest {
 		assertNull(nestedMapping.getSourceExpression().getLinkField());
 	}
 
+	/**
+	 * Tests chaining over a ReferenceType member and client property for href
+	 * attribute.
+	 */
+	@Test
+	public void testReferenceTypeJoinHandler() throws Exception {
+		FeatureChaining chainingConf = readFeatureChainingConfiguration(
+				"/data/feature-chaining-landcover_reference.xml");
+		JoinConfiguration joinConfiguration = chainingConf.getJoins().values().iterator().next();
+		ChainConfiguration chainConfiguration = joinConfiguration.getChain(0);
+		// set the Nested type target
+		ChildDefinition<?> memberChildDef = DefinitionUtil.getChild(landCoverDatasetType,
+				new QName(LANDCOVER_NS, "referenceMember"));
+		ChildDefinition<?> hrefChildDef = DefinitionUtil.getChild(memberChildDef,
+				new QName(XLINK_NS, "href"));
+		chainConfiguration.setNestedTypeTarget(new PropertyEntityDefinition(landCoverDatasetType,
+				Arrays.asList(new ChildContext(memberChildDef), new ChildContext(hrefChildDef)),
+				SchemaSpaceID.TARGET, null));
+		chainConfiguration.setReferenceLinkedType(this.landCoverUnitType);
+		assertNotNull(chainingConf);
+		// generate join cell
+		DefaultCell joinCell = buildJoinCell(chainingConf);
+
+		// create minimal alignment and pass it to JoinHandler
+		DefaultCell renameCell = new DefaultCell();
+		renameCell.setTransformationIdentifier(RenameFunction.ID);
+		renameCell.setSource(getUnitIdSourceProperty(unitType));
+		renameCell.setTarget(getNestedUnitReferenceTypeTargetProperty());
+
+		DefaultAlignment alignment = new DefaultAlignment();
+		alignment.addCell(joinCell);
+		alignment.addCell(renameCell);
+
+		processJoinAlignment(alignment, chainingConf);
+
+		logMapping(mappingWrapper.getMainMapping());
+		logMapping(mappingWrapper.getIncludedTypesMapping());
+
+		List<FeatureTypeMapping> ftMappings = mappingWrapper.getMainMapping().getTypeMappings()
+				.getFeatureTypeMapping();
+		assertEquals(2, ftMappings.size());
+
+		FeatureTypeMapping lcdMapping = null, lcuMapping = null;
+		for (FeatureTypeMapping ftMapping : ftMappings) {
+			if (SOURCE_DATASET.equals(ftMapping.getSourceType())
+					&& "lcv:LandCoverDataset".equals(ftMapping.getTargetElement())) {
+				lcdMapping = ftMapping;
+			}
+			if (SOURCE_UNIT.equals(ftMapping.getSourceType())
+					&& "lcv:LandCoverUnit".equals(ftMapping.getTargetElement())) {
+				lcuMapping = ftMapping;
+			}
+		}
+		assertNotNull(lcdMapping);
+		assertNotNull(lcuMapping);
+
+		// check feature chaining configuration
+		List<AttributeMappingType> lcdAttrMappings = lcdMapping.getAttributeMappings()
+				.getAttributeMapping();
+		List<AttributeMappingType> lcuAttrMappings = lcuMapping.getAttributeMappings()
+				.getAttributeMapping();
+		assertNotNull(lcdAttrMappings);
+		assertNotNull(lcuAttrMappings);
+		assertEquals(1, lcdAttrMappings.size());
+		assertEquals(1, lcuAttrMappings.size());
+
+		AttributeMappingType containerMapping = lcdAttrMappings.get(0);
+		assertEquals("lcv:referenceMember", containerMapping.getTargetAttribute());
+		assertEquals("lcv:LandCoverUnit", containerMapping.getSourceExpression().getLinkElement());
+		assertEquals("FEATURE_LINK[1]", containerMapping.getSourceExpression().getLinkField());
+		assertEquals(SOURCE_DATASET_ID, containerMapping.getSourceExpression().getOCQL());
+		assertTrue(containerMapping.isIsMultiple());
+
+		assertNotNull(containerMapping.getClientProperty());
+		assertEquals(1, containerMapping.getClientProperty().size());
+		assertEquals("xlink:href", containerMapping.getClientProperty().get(0).getName());
+		assertEquals(SOURCE_UNIT_ID, containerMapping.getClientProperty().get(0).getValue());
+
+		AttributeMappingType nestedMapping = lcuAttrMappings.get(0);
+		assertEquals("FEATURE_LINK[1]", nestedMapping.getTargetAttribute());
+		assertEquals(SOURCE_DATASET_ID, nestedMapping.getSourceExpression().getOCQL());
+		assertNull(nestedMapping.getSourceExpression().getLinkElement());
+		assertNull(nestedMapping.getSourceExpression().getLinkField());
+	}
+
 	@Test
 	public void testFeatureChainingJoin() throws Exception {
 		FeatureChaining chainingConf = readFeatureChainingConfiguration(FEATURE_CHAINING_CONF_PATH);
@@ -436,10 +526,10 @@ public class AppSchemaMappingTest {
 		// the order of join conditions
 		AttributeMappingType datasetContainerMapping = lcdAttrMappings.get(0);
 		assertEquals("lcv:member", datasetContainerMapping.getTargetAttribute());
-		assertEquals("lcv:LandCoverUnit", datasetContainerMapping.getSourceExpression()
-				.getLinkElement());
-		assertEquals("FEATURE_LINK[1]", datasetContainerMapping.getSourceExpression()
-				.getLinkField());
+		assertEquals("lcv:LandCoverUnit",
+				datasetContainerMapping.getSourceExpression().getLinkElement());
+		assertEquals("FEATURE_LINK[1]",
+				datasetContainerMapping.getSourceExpression().getLinkField());
 		assertEquals(SOURCE_DATASET_ID, datasetContainerMapping.getSourceExpression().getOCQL());
 		assertTrue(datasetContainerMapping.isIsMultiple());
 
@@ -453,8 +543,8 @@ public class AppSchemaMappingTest {
 		AttributeMappingType unitContainerMapping = lcuAttrMappings.get(1);
 		assertEquals("lcv:landCoverObservation", unitContainerMapping.getTargetAttribute());
 		assertEquals(SOURCE_UNIT_ID, unitContainerMapping.getSourceExpression().getOCQL());
-		assertEquals("lcv:LandCoverObservation", unitContainerMapping.getSourceExpression()
-				.getLinkElement());
+		assertEquals("lcv:LandCoverObservation",
+				unitContainerMapping.getSourceExpression().getLinkElement());
 		assertEquals("FEATURE_LINK[1]", unitContainerMapping.getSourceExpression().getLinkField());
 		assertTrue(unitContainerMapping.isIsMultiple());
 
@@ -516,11 +606,11 @@ public class AppSchemaMappingTest {
 		}
 
 		ListMultimap<String, Type> target = ArrayListMultimap.create();
-		target.put(null, new DefaultType(new TypeEntityDefinition(landCoverDatasetType,
-				SchemaSpaceID.TARGET, null)));
+		target.put(null, new DefaultType(
+				new TypeEntityDefinition(landCoverDatasetType, SchemaSpaceID.TARGET, null)));
 
-		List<TypeEntityDefinition> types = new ArrayList<TypeEntityDefinition>(Arrays.asList(
-				datasetEntityDef, unitEntityDef));
+		List<TypeEntityDefinition> types = new ArrayList<TypeEntityDefinition>(
+				Arrays.asList(datasetEntityDef, unitEntityDef));
 		Set<JoinCondition> conditions = new HashSet<JoinCondition>();
 		// join dataset and unit
 		PropertyEntityDefinition baseProperty = getDatasetIdSourceProperty().values().iterator()
@@ -541,8 +631,8 @@ public class AppSchemaMappingTest {
 		JoinParameter joinParam = new JoinParameter(types, conditions);
 
 		ListMultimap<String, ParameterValue> parameters = ArrayListMultimap.create();
-		parameters
-				.put(JoinFunction.PARAMETER_JOIN, new ParameterValue(new ComplexValue(joinParam)));
+		parameters.put(JoinFunction.PARAMETER_JOIN,
+				new ParameterValue(new ComplexValue(joinParam)));
 
 		joinCell.setSource(source);
 		joinCell.setTarget(target);
@@ -660,8 +750,8 @@ public class AppSchemaMappingTest {
 		cell.setTransformationIdentifier(MathematicalExpressionFunction.ID);
 
 		ListMultimap<String, ParameterValue> parameters = ArrayListMultimap.create();
-		parameters.put(MathematicalExpressionFunction.PARAMETER_EXPRESSION, new ParameterValue(
-				EXPRESSION));
+		parameters.put(MathematicalExpressionFunction.PARAMETER_EXPRESSION,
+				new ParameterValue(EXPRESSION));
 
 		ListMultimap<String, Property> source = ArrayListMultimap.create();
 		source.putAll(MathematicalExpressionFunction.ENTITY_VARIABLE,
@@ -743,10 +833,10 @@ public class AppSchemaMappingTest {
 		LookupTable lookupTable = new LookupTableImpl(tableValues);
 
 		ListMultimap<String, ParameterValue> parameters = ArrayListMultimap.create();
-		parameters.put(ClassificationMappingFunction.PARAMETER_LOOKUPTABLE, new ParameterValue(
-				new ComplexValue(lookupTable)));
-		parameters.put(ClassificationMapping.PARAMETER_NOT_CLASSIFIED_ACTION, new ParameterValue(
-				ClassificationMapping.USE_SOURCE_ACTION));
+		parameters.put(ClassificationMappingFunction.PARAMETER_LOOKUPTABLE,
+				new ParameterValue(new ComplexValue(lookupTable)));
+		parameters.put(ClassificationMapping.PARAMETER_NOT_CLASSIFIED_ACTION,
+				new ParameterValue(ClassificationMapping.USE_SOURCE_ACTION));
 		cell.setTransformationParameters(parameters);
 
 		StringBuilder inArgs = new StringBuilder();
@@ -781,8 +871,8 @@ public class AppSchemaMappingTest {
 		// reset mapping
 		initMapping();
 		parameters.removeAll(ClassificationMapping.PARAMETER_NOT_CLASSIFIED_ACTION);
-		parameters.put(ClassificationMapping.PARAMETER_NOT_CLASSIFIED_ACTION, new ParameterValue(
-				ClassificationMapping.USE_NULL_ACTION));
+		parameters.put(ClassificationMapping.PARAMETER_NOT_CLASSIFIED_ACTION,
+				new ParameterValue(ClassificationMapping.USE_NULL_ACTION));
 		cell.setTransformationParameters(parameters);
 		attrMapping = classificationHandler.handlePropertyTransformation(typeCell, cell,
 				new AppSchemaMappingContext(mappingWrapper));
@@ -898,8 +988,8 @@ public class AppSchemaMappingTest {
 				new ParameterValue(GML_ID_PATTERN));
 
 		ListMultimap<String, Property> source = ArrayListMultimap.create();
-		source.putAll(FormattedStringFunction.ENTITY_VARIABLE, getDatasetIdSourceProperty()
-				.values());
+		source.putAll(FormattedStringFunction.ENTITY_VARIABLE,
+				getDatasetIdSourceProperty().values());
 		geomGmlIdFormatCell.setSource(source);
 		geomGmlIdFormatCell.setTarget(getLandCoverDatasetGeometryGmlIdTargetProperty());
 		geomGmlIdFormatCell.setTransformationParameters(parameters);
@@ -1026,11 +1116,11 @@ public class AppSchemaMappingTest {
 		DefaultCell format = new DefaultCell();
 		format.setTransformationIdentifier(FormattedStringFunction.ID);
 		ListMultimap<String, ParameterValue> formatParameters = ArrayListMultimap.create();
-		formatParameters.put(FormattedStringFunction.PARAMETER_PATTERN, new ParameterValue(
-				XLINK_HREF_PATTERN));
+		formatParameters.put(FormattedStringFunction.PARAMETER_PATTERN,
+				new ParameterValue(XLINK_HREF_PATTERN));
 		ListMultimap<String, Property> source = ArrayListMultimap.create();
-		source.putAll(FormattedStringFunction.ENTITY_VARIABLE, getDatasetIdSourceProperty()
-				.values());
+		source.putAll(FormattedStringFunction.ENTITY_VARIABLE,
+				getDatasetIdSourceProperty().values());
 		format.setSource(source);
 		format.setTarget(getNestedUnitHrefTargetProperty());
 		format.setTransformationParameters(formatParameters);
@@ -1075,8 +1165,8 @@ public class AppSchemaMappingTest {
 		AppSchemaMappingContext context = new AppSchemaMappingContext(mappingWrapper);
 
 		AssignHandler assignHandler = new AssignHandler();
-		attrMapping = assignHandler
-				.handlePropertyTransformation(typeCell, assignNilReason, context);
+		attrMapping = assignHandler.handlePropertyTransformation(typeCell, assignNilReason,
+				context);
 		assertNotNull(attrMapping);
 		assertEquals("lcv:beginLifespanVersion", attrMapping.getTargetAttribute());
 		assertNull(attrMapping.getSourceExpression());
@@ -1110,8 +1200,8 @@ public class AppSchemaMappingTest {
 		// remove nilReason client property
 		attrMapping.getClientProperty().remove(0);
 		// run again assing handler, nothing should change
-		attrMapping = assignHandler
-				.handlePropertyTransformation(typeCell, assignNilReason, context);
+		attrMapping = assignHandler.handlePropertyTransformation(typeCell, assignNilReason,
+				context);
 		assertEquals(2, attrMapping.getClientProperty().size());
 		assertEquals("xsi:nil", attrMapping.getClientProperty().get(0).getName());
 		assertEquals(expectedXsiNilWithSource, attrMapping.getClientProperty().get(0).getValue());
@@ -1138,8 +1228,8 @@ public class AppSchemaMappingTest {
 		AppSchemaMappingContext context = new AppSchemaMappingContext(mappingWrapper);
 
 		AssignHandler assignHandler = new AssignHandler();
-		attrMapping = assignHandler
-				.handlePropertyTransformation(typeCell, assignNilReason, context);
+		attrMapping = assignHandler.handlePropertyTransformation(typeCell, assignNilReason,
+				context);
 		assertNotNull(attrMapping);
 		assertEquals("gml:description", attrMapping.getTargetAttribute());
 		assertNull(attrMapping.getSourceExpression());
@@ -1173,8 +1263,8 @@ public class AppSchemaMappingTest {
 	}
 
 	private ListMultimap<String, Property> getDatasetIdSourceProperty() {
-		ChildDefinition<?> childDef = DefinitionUtil.getChild(datasetType, new QName(
-				SOURCE_DATASET_ID));
+		ChildDefinition<?> childDef = DefinitionUtil.getChild(datasetType,
+				new QName(SOURCE_DATASET_ID));
 		assertNotNull(childDef);
 
 		return createSourceProperty(datasetType, childDef);
@@ -1203,16 +1293,16 @@ public class AppSchemaMappingTest {
 	}
 
 	private ListMultimap<String, Property> getUcs2007SourceProperty() {
-		ChildDefinition<?> childDef = DefinitionUtil.getChild(unitDenormType, new QName(
-				SOURCE_UCS2007));
+		ChildDefinition<?> childDef = DefinitionUtil.getChild(unitDenormType,
+				new QName(SOURCE_UCS2007));
 		assertNotNull(childDef);
 
 		return createSourceProperty(unitDenormType, childDef);
 	}
 
 	private ListMultimap<String, Property> getUcs2013SourceProperty() {
-		ChildDefinition<?> childDef = DefinitionUtil.getChild(unitDenormType, new QName(
-				SOURCE_UCS2013));
+		ChildDefinition<?> childDef = DefinitionUtil.getChild(unitDenormType,
+				new QName(SOURCE_UCS2013));
 		assertNotNull(childDef);
 
 		return createSourceProperty(unitDenormType, childDef);
@@ -1233,16 +1323,16 @@ public class AppSchemaMappingTest {
 	}
 
 	private ListMultimap<String, Property> getObservationUnitIdSourceProperty() {
-		ChildDefinition<?> childDef = DefinitionUtil.getChild(observationType, new QName(
-				SOURCE_OBS_UNIT_ID));
+		ChildDefinition<?> childDef = DefinitionUtil.getChild(observationType,
+				new QName(SOURCE_OBS_UNIT_ID));
 		assertNotNull(childDef);
 
 		return createSourceProperty(observationType, childDef);
 	}
 
 	private ListMultimap<String, Property> getObservationClassSourceProperty() {
-		ChildDefinition<?> childDef = DefinitionUtil.getChild(observationType, new QName(
-				SOURCE_OBS_CLASS));
+		ChildDefinition<?> childDef = DefinitionUtil.getChild(observationType,
+				new QName(SOURCE_OBS_CLASS));
 		assertNotNull(childDef);
 
 		return createSourceProperty(observationType, childDef);
@@ -1266,29 +1356,29 @@ public class AppSchemaMappingTest {
 		ChildDefinition<?> identifierChildDef = DefinitionUtil.getChild(inspireIdChildDef,
 				new QName(BASE_NS, "Identifier"));
 		assertNotNull(identifierChildDef);
-		ChildDefinition<?> localIdChildDef = DefinitionUtil.getChild(identifierChildDef, new QName(
-				BASE_NS, "localId"));
+		ChildDefinition<?> localIdChildDef = DefinitionUtil.getChild(identifierChildDef,
+				new QName(BASE_NS, "localId"));
 		assertNotNull(localIdChildDef);
 
-		return createTargetProperty(Arrays.asList(inspireIdChildDef, identifierChildDef,
-				localIdChildDef));
+		return createTargetProperty(
+				Arrays.asList(inspireIdChildDef, identifierChildDef, localIdChildDef));
 	}
 
 	private ListMultimap<String, Property> getNestedUnitLocalIdTargetProperty() {
 		ChildDefinition<?> memberChildDef = DefinitionUtil.getChild(landCoverDatasetType,
 				new QName(LANDCOVER_NS, "member"));
 		assertNotNull(memberChildDef);
-		ChildDefinition<?> lcuChildDef = DefinitionUtil.getChild(memberChildDef, new QName(
-				LANDCOVER_NS, "LandCoverUnit"));
+		ChildDefinition<?> lcuChildDef = DefinitionUtil.getChild(memberChildDef,
+				new QName(LANDCOVER_NS, "LandCoverUnit"));
 		assertNotNull(lcuChildDef);
-		ChildDefinition<?> inspireIdChildDef = DefinitionUtil.getChild(lcuChildDef, new QName(
-				LANDCOVER_NS, "inspireId"));
+		ChildDefinition<?> inspireIdChildDef = DefinitionUtil.getChild(lcuChildDef,
+				new QName(LANDCOVER_NS, "inspireId"));
 		assertNotNull(inspireIdChildDef);
 		ChildDefinition<?> identifierChildDef = DefinitionUtil.getChild(inspireIdChildDef,
 				new QName(BASE_NS, "Identifier"));
 		assertNotNull(identifierChildDef);
-		ChildDefinition<?> localIdChildDef = DefinitionUtil.getChild(identifierChildDef, new QName(
-				BASE_NS, "localId"));
+		ChildDefinition<?> localIdChildDef = DefinitionUtil.getChild(identifierChildDef,
+				new QName(BASE_NS, "localId"));
 		assertNotNull(localIdChildDef);
 
 		return createNestedTargetProperty(Arrays.asList(memberChildDef, lcuChildDef,
@@ -1299,45 +1389,55 @@ public class AppSchemaMappingTest {
 		ChildDefinition<?> memberChildDef = DefinitionUtil.getChild(landCoverDatasetType,
 				new QName(LANDCOVER_NS, "member"));
 		assertNotNull(memberChildDef);
-		ChildDefinition<?> hrefChildDef = DefinitionUtil.getChild(memberChildDef, new QName(
-				XLINK_NS, "href"));
+		ChildDefinition<?> hrefChildDef = DefinitionUtil.getChild(memberChildDef,
+				new QName(XLINK_NS, "href"));
 		assertNotNull(hrefChildDef);
 
 		return createNestedTargetProperty(Arrays.asList(memberChildDef, hrefChildDef));
 	}
 
+	private ListMultimap<String, Property> getNestedUnitReferenceTypeTargetProperty() {
+		ChildDefinition<?> memberChildDef = DefinitionUtil.getChild(landCoverDatasetType,
+				new QName(LANDCOVER_NS, "referenceMember"));
+		assertNotNull(memberChildDef);
+		ChildDefinition<?> hrefChildDef = DefinitionUtil.getChild(memberChildDef,
+				new QName(XLINK_NS, "href"));
+		assertNotNull(hrefChildDef);
+		return createNestedTargetProperty(Arrays.asList(memberChildDef, hrefChildDef));
+	}
+
 	private ListMultimap<String, Property> getNestedObservationClassTargetProperty() {
-		ChildDefinition<?> member = DefinitionUtil.getChild(landCoverDatasetType, new QName(
-				LANDCOVER_NS, "member"));
+		ChildDefinition<?> member = DefinitionUtil.getChild(landCoverDatasetType,
+				new QName(LANDCOVER_NS, "member"));
 		assertNotNull(member);
-		ChildDefinition<?> lcu = DefinitionUtil.getChild(member, new QName(LANDCOVER_NS,
-				"LandCoverUnit"));
+		ChildDefinition<?> lcu = DefinitionUtil.getChild(member,
+				new QName(LANDCOVER_NS, "LandCoverUnit"));
 		assertNotNull(lcu);
-		ChildDefinition<?> observation = DefinitionUtil.getChild(lcu, new QName(LANDCOVER_NS,
-				"landCoverObservation"));
-		ChildDefinition<?> observationFeature = DefinitionUtil.getChild(observation, new QName(
-				LANDCOVER_NS, "LandCoverObservation"));
+		ChildDefinition<?> observation = DefinitionUtil.getChild(lcu,
+				new QName(LANDCOVER_NS, "landCoverObservation"));
+		ChildDefinition<?> observationFeature = DefinitionUtil.getChild(observation,
+				new QName(LANDCOVER_NS, "LandCoverObservation"));
 		ChildDefinition<?> observationClass = DefinitionUtil.getChild(observationFeature,
 				new QName(LANDCOVER_NS, "class"));
 
-		return createNestedTargetProperty(Arrays.asList(member, lcu, observation,
-				observationFeature, observationClass));
+		return createNestedTargetProperty(
+				Arrays.asList(member, lcu, observation, observationFeature, observationClass));
 	}
 
 	private ListMultimap<String, Property> getMetaDataHrefTargetProperty() {
-		ChildDefinition<?> metaDataChildDef = DefinitionUtil.getChild(landCoverUnitType, new QName(
-				GML_NS, "metaDataProperty"));
+		ChildDefinition<?> metaDataChildDef = DefinitionUtil.getChild(landCoverUnitType,
+				new QName(GML_NS, "metaDataProperty"));
 		assertNotNull(metaDataChildDef);
-		ChildDefinition<?> hrefChildDef = DefinitionUtil.getChild(metaDataChildDef, new QName(
-				XLINK_NS, "href"));
+		ChildDefinition<?> hrefChildDef = DefinitionUtil.getChild(metaDataChildDef,
+				new QName(XLINK_NS, "href"));
 		assertNotNull(hrefChildDef);
 
 		return createTargetProperty(Arrays.asList(metaDataChildDef, hrefChildDef));
 	}
 
 	private ListMultimap<String, Property> getFirstObservationDateTargetProperty() {
-		ChildDefinition<?> lcvObsChildDef = DefinitionUtil.getChild(landCoverUnitType, new QName(
-				LANDCOVER_NS, "landCoverObservation"));
+		ChildDefinition<?> lcvObsChildDef = DefinitionUtil.getChild(landCoverUnitType,
+				new QName(LANDCOVER_NS, "landCoverObservation"));
 		assertNotNull(lcvObsChildDef);
 		ChildDefinition<?> lcvObsFeatureTypeChildDef = DefinitionUtil.getChild(lcvObsChildDef,
 				new QName(LANDCOVER_NS, "LandCoverObservation"));
@@ -1364,11 +1464,11 @@ public class AppSchemaMappingTest {
 	}
 
 	private ListMultimap<String, Property> getDescriptionNilReasonTargetProperty() {
-		ChildDefinition<?> description = DefinitionUtil.getChild(landCoverUnitType, new QName(
-				GML_NS, "description"));
+		ChildDefinition<?> description = DefinitionUtil.getChild(landCoverUnitType,
+				new QName(GML_NS, "description"));
 		assertNotNull(description);
-		ChildDefinition<?> nilReason = DefinitionUtil.getChild(description, new QName(
-				GML_NIL_REASON));
+		ChildDefinition<?> nilReason = DefinitionUtil.getChild(description,
+				new QName(GML_NIL_REASON));
 		assertNotNull(nilReason);
 
 		List<ChildDefinition<?>> childDefs = new ArrayList<ChildDefinition<?>>();
@@ -1379,8 +1479,8 @@ public class AppSchemaMappingTest {
 	}
 
 	private ListMultimap<String, Property> getBeginLifespanTargetProperty() {
-		ChildDefinition<?> beginLifeSpan = DefinitionUtil.getChild(landCoverUnitType, new QName(
-				LANDCOVER_NS, "beginLifespanVersion"));
+		ChildDefinition<?> beginLifeSpan = DefinitionUtil.getChild(landCoverUnitType,
+				new QName(LANDCOVER_NS, "beginLifespanVersion"));
 		assertNotNull(beginLifeSpan);
 
 		List<ChildDefinition<?>> childDefs = new ArrayList<ChildDefinition<?>>();
@@ -1390,11 +1490,11 @@ public class AppSchemaMappingTest {
 	}
 
 	private ListMultimap<String, Property> getBeginLifespanNilReasonTargetProperty() {
-		ChildDefinition<?> beginLifeSpan = DefinitionUtil.getChild(landCoverUnitType, new QName(
-				LANDCOVER_NS, "beginLifespanVersion"));
+		ChildDefinition<?> beginLifeSpan = DefinitionUtil.getChild(landCoverUnitType,
+				new QName(LANDCOVER_NS, "beginLifespanVersion"));
 		assertNotNull(beginLifeSpan);
-		ChildDefinition<?> nilReason = DefinitionUtil.getChild(beginLifeSpan, new QName(
-				GML_NIL_REASON));
+		ChildDefinition<?> nilReason = DefinitionUtil.getChild(beginLifeSpan,
+				new QName(GML_NIL_REASON));
 		assertNotNull(nilReason);
 
 		List<ChildDefinition<?>> childDefs = new ArrayList<ChildDefinition<?>>();
@@ -1413,11 +1513,11 @@ public class AppSchemaMappingTest {
 	private ListMultimap<String, Property> getLandCoverUnitGeometryGmlIdTargetProperty() {
 		List<ChildDefinition<?>> childDefs = getLandCoverUnitGeometryPath();
 		ChildDefinition<?> geometry = childDefs.get(childDefs.size() - 1);
-		ChildDefinition<?> abstractGeometry = DefinitionUtil.getChild(geometry, new QName(
-				"http://www.opengis.net/gml/3.2/AbstractGeometry", "choice"));
+		ChildDefinition<?> abstractGeometry = DefinitionUtil.getChild(geometry,
+				new QName("http://www.opengis.net/gml/3.2/AbstractGeometry", "choice"));
 		assertNotNull(abstractGeometry);
-		ChildDefinition<?> multiSurface = DefinitionUtil.getChild(abstractGeometry, new QName(
-				GML_NS, "MultiSurface"));
+		ChildDefinition<?> multiSurface = DefinitionUtil.getChild(abstractGeometry,
+				new QName(GML_NS, "MultiSurface"));
 		assertNotNull(multiSurface);
 		ChildDefinition<?> gmlId = DefinitionUtil.getChild(multiSurface, new QName(GML_NS, "id"));
 		assertNotNull(gmlId);
@@ -1430,8 +1530,8 @@ public class AppSchemaMappingTest {
 	}
 
 	private List<ChildDefinition<?>> getLandCoverUnitGeometryPath() {
-		ChildDefinition<?> geometry = DefinitionUtil.getChild(landCoverUnitType, new QName(
-				LANDCOVER_NS, "geometry"));
+		ChildDefinition<?> geometry = DefinitionUtil.getChild(landCoverUnitType,
+				new QName(LANDCOVER_NS, "geometry"));
 		assertNotNull(geometry);
 
 		List<ChildDefinition<?>> childDefs = new ArrayList<ChildDefinition<?>>();
@@ -1457,30 +1557,30 @@ public class AppSchemaMappingTest {
 	}
 
 	private List<ChildDefinition<?>> getLandCoverDatasetGeometryPath() {
-		ChildDefinition<?> extent = DefinitionUtil.getChild(landCoverDatasetType, new QName(
-				LANDCOVER_NS, "extent"));
+		ChildDefinition<?> extent = DefinitionUtil.getChild(landCoverDatasetType,
+				new QName(LANDCOVER_NS, "extent"));
 		assertNotNull(extent);
 		ChildDefinition<?> exExtent = DefinitionUtil.getChild(extent,
 				new QName(GMD_NS, "EX_Extent"));
 		assertNotNull(exExtent);
-		ChildDefinition<?> geographicElement = DefinitionUtil.getChild(exExtent, new QName(GMD_NS,
-				"geographicElement"));
+		ChildDefinition<?> geographicElement = DefinitionUtil.getChild(exExtent,
+				new QName(GMD_NS, "geographicElement"));
 		assertNotNull(geographicElement);
-		ChildDefinition<?> exGeographicExtentChoice = DefinitionUtil
-				.getChild(geographicElement, new QName(
-						"http://www.isotc211.org/2005/gmd/AbstractEX_GeographicExtent", "choice"));
+		ChildDefinition<?> exGeographicExtentChoice = DefinitionUtil.getChild(geographicElement,
+				new QName("http://www.isotc211.org/2005/gmd/AbstractEX_GeographicExtent",
+						"choice"));
 		assertNotNull(exGeographicExtentChoice);
 		ChildDefinition<?> exBoundingPolygon = DefinitionUtil.getChild(exGeographicExtentChoice,
 				new QName(GMD_NS, "EX_BoundingPolygon"));
 		assertNotNull(exBoundingPolygon);
-		ChildDefinition<?> polygon = DefinitionUtil.getChild(exBoundingPolygon, new QName(GMD_NS,
-				"polygon"));
+		ChildDefinition<?> polygon = DefinitionUtil.getChild(exBoundingPolygon,
+				new QName(GMD_NS, "polygon"));
 		assertNotNull(polygon);
-		ChildDefinition<?> abstractGeometry = DefinitionUtil.getChild(polygon, new QName(
-				"http://www.opengis.net/gml/3.2/AbstractGeometry", "choice"));
+		ChildDefinition<?> abstractGeometry = DefinitionUtil.getChild(polygon,
+				new QName("http://www.opengis.net/gml/3.2/AbstractGeometry", "choice"));
 		assertNotNull(abstractGeometry);
-		ChildDefinition<?> multiSurface = DefinitionUtil.getChild(abstractGeometry, new QName(
-				GML_NS, "MultiSurface"));
+		ChildDefinition<?> multiSurface = DefinitionUtil.getChild(abstractGeometry,
+				new QName(GML_NS, "MultiSurface"));
 		assertNotNull(multiSurface);
 
 		List<ChildDefinition<?>> childDefs = new ArrayList<ChildDefinition<?>>();
@@ -1497,8 +1597,8 @@ public class AppSchemaMappingTest {
 	}
 
 	private ListMultimap<String, Property> getGmlIdTargetProperty() {
-		ChildDefinition<?> gmlIdChildDef = DefinitionUtil.getChild(landCoverUnitType, new QName(
-				GML_NS, "id"));
+		ChildDefinition<?> gmlIdChildDef = DefinitionUtil.getChild(landCoverUnitType,
+				new QName(GML_NS, "id"));
 
 		List<ChildDefinition<?>> childDefs = new ArrayList<ChildDefinition<?>>();
 		childDefs.add(gmlIdChildDef);
@@ -1507,10 +1607,10 @@ public class AppSchemaMappingTest {
 	}
 
 	private ListMultimap<String, Property> getCodeSpaceTargetProperty() {
-		ChildDefinition<?> nameChildDef = DefinitionUtil.getChild(landCoverDatasetType, new QName(
-				GML_NS, "name"));
-		ChildDefinition<?> codeSpaceChildDef = DefinitionUtil.getChild(nameChildDef, new QName(
-				"codeSpace"));
+		ChildDefinition<?> nameChildDef = DefinitionUtil.getChild(landCoverDatasetType,
+				new QName(GML_NS, "name"));
+		ChildDefinition<?> codeSpaceChildDef = DefinitionUtil.getChild(nameChildDef,
+				new QName("codeSpace"));
 
 		List<ChildDefinition<?>> childDefs = new ArrayList<ChildDefinition<?>>();
 		childDefs.add(nameChildDef);
@@ -1520,14 +1620,14 @@ public class AppSchemaMappingTest {
 	}
 
 	private ListMultimap<String, Property> getTimeInstantGmlIdTargetProperty() {
-		ChildDefinition<?> extent = DefinitionUtil.getChild(landCoverDatasetType, new QName(
-				LANDCOVER_NS, "extent"));
+		ChildDefinition<?> extent = DefinitionUtil.getChild(landCoverDatasetType,
+				new QName(LANDCOVER_NS, "extent"));
 		assertNotNull(extent);
 		ChildDefinition<?> exExtent = DefinitionUtil.getChild(extent,
 				new QName(GMD_NS, "EX_Extent"));
 		assertNotNull(exExtent);
-		ChildDefinition<?> temporalElement = DefinitionUtil.getChild(exExtent, new QName(GMD_NS,
-				"temporalElement"));
+		ChildDefinition<?> temporalElement = DefinitionUtil.getChild(exExtent,
+				new QName(GMD_NS, "temporalElement"));
 		assertNotNull(temporalElement);
 		ChildDefinition<?> exTemporalExtentChoice = DefinitionUtil.getChild(temporalElement,
 				new QName("http://www.isotc211.org/2005/gmd/EX_TemporalExtent", "choice"));
@@ -1535,17 +1635,17 @@ public class AppSchemaMappingTest {
 		ChildDefinition<?> exTemporalExtent = DefinitionUtil.getChild(exTemporalExtentChoice,
 				new QName(GMD_NS, "EX_TemporalExtent"));
 		assertNotNull(exTemporalExtent);
-		ChildDefinition<?> temporalExtent = DefinitionUtil.getChild(exTemporalExtent, new QName(
-				GMD_NS, "extent"));
+		ChildDefinition<?> temporalExtent = DefinitionUtil.getChild(exTemporalExtent,
+				new QName(GMD_NS, "extent"));
 		assertNotNull(temporalExtent);
 		ChildDefinition<?> abstractTimePrimitive = DefinitionUtil.getChild(temporalExtent,
 				new QName("http://www.opengis.net/gml/3.2/AbstractTimePrimitive", "choice"));
 		assertNotNull(abstractTimePrimitive);
-		ChildDefinition<?> timeInstant = DefinitionUtil.getChild(abstractTimePrimitive, new QName(
-				GML_NS, "TimeInstant"));
+		ChildDefinition<?> timeInstant = DefinitionUtil.getChild(abstractTimePrimitive,
+				new QName(GML_NS, "TimeInstant"));
 		assertNotNull(timeInstant);
-		ChildDefinition<?> timeInstantGmlId = DefinitionUtil.getChild(timeInstant, new QName(
-				GML_NS, "id"));
+		ChildDefinition<?> timeInstantGmlId = DefinitionUtil.getChild(timeInstant,
+				new QName(GML_NS, "id"));
 		assertNotNull(timeInstantGmlId);
 
 		List<ChildDefinition<?>> childDefs = new ArrayList<ChildDefinition<?>>();
@@ -1562,7 +1662,8 @@ public class AppSchemaMappingTest {
 		return createTargetProperty(childDefs);
 	}
 
-	private ListMultimap<String, Property> createTargetProperty(List<ChildDefinition<?>> childDefs) {
+	private ListMultimap<String, Property> createTargetProperty(
+			List<ChildDefinition<?>> childDefs) {
 		return createTargetProperty(landCoverUnitType, childDefs, null, null);
 	}
 
@@ -1600,11 +1701,11 @@ public class AppSchemaMappingTest {
 
 		typeCell.setTransformationIdentifier(RetypeFunction.ID);
 		ListMultimap<String, Type> source = ArrayListMultimap.create();
-		source.put(null, new DefaultType(new TypeEntityDefinition(sourceType, SchemaSpaceID.SOURCE,
-				null)));
+		source.put(null,
+				new DefaultType(new TypeEntityDefinition(sourceType, SchemaSpaceID.SOURCE, null)));
 		ListMultimap<String, Type> target = ArrayListMultimap.create();
-		target.put(null, new DefaultType(new TypeEntityDefinition(targetType, SchemaSpaceID.TARGET,
-				null)));
+		target.put(null,
+				new DefaultType(new TypeEntityDefinition(targetType, SchemaSpaceID.TARGET, null)));
 		typeCell.setSource(source);
 		typeCell.setTarget(target);
 

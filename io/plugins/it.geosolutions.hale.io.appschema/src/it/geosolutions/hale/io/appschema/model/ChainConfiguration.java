@@ -45,6 +45,7 @@ public class ChainConfiguration {
 	PropertyType jaxbNestedTypeTarget;
 	PropertyEntityDefinition nestedTypeTarget;
 	String mappingName;
+	TypeDefinition referenceLinkedType;
 
 	/**
 	 * @return the chain index
@@ -173,6 +174,20 @@ public class ChainConfiguration {
 	 */
 	public void setMappingName(String mappingName) {
 		this.mappingName = mappingName;
+	}
+
+	/**
+	 * @return the linked Type for the ReferenceType joining
+	 */
+	public TypeDefinition getReferenceLinkedType() {
+		return referenceLinkedType;
+	}
+
+	/**
+	 * sets the linked Type for the ReferenceType joining.
+	 */
+	public void setReferenceLinkedType(TypeDefinition referenceLinkedType) {
+		this.referenceLinkedType = referenceLinkedType;
 	}
 
 }

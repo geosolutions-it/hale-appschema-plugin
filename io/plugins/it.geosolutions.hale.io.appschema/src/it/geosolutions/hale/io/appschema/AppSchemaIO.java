@@ -18,6 +18,9 @@ package it.geosolutions.hale.io.appschema;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import eu.esdihumboldt.hale.common.align.model.Cell;
+import eu.esdihumboldt.hale.common.schema.model.TypeDefinition;
+
 /**
  * Class holding constants and utility methods.
  * 
@@ -122,12 +125,13 @@ public abstract class AppSchemaIO {
 	 * @return the first matching <code>Element</code> node descendant of
 	 *         <code>parent</code>
 	 */
-	public static Element getFirstElementByTagName(Element parent, String tagName, String namespace) {
+	public static Element getFirstElementByTagName(Element parent, String tagName,
+			String namespace) {
 		if (namespace == null)
 			namespace = "";
 
-		NodeList elements = (namespace.isEmpty()) ? parent.getElementsByTagName(tagName) : parent
-				.getElementsByTagNameNS(namespace, tagName);
+		NodeList elements = (namespace.isEmpty()) ? parent.getElementsByTagName(tagName)
+				: parent.getElementsByTagNameNS(namespace, tagName);
 
 		if (elements != null && elements.getLength() > 0) {
 			return (Element) elements.item(0);
@@ -135,5 +139,35 @@ public abstract class AppSchemaIO {
 		else {
 			return null;
 		}
+	}
+
+	/**
+	 * Checks if provided TypeDefinition is a GML ReferenceType.
+	 * 
+	 * @param typeDef type definition to check.
+	 * @return true if it is a ReferenceType, else returns false.
+	 */
+	public static boolean isReferenceType(TypeDefinition typeDef) {
+		try {
+			return typeDef.getName().getLocalPart().equals("ReferenceType")
+					&& typeDef.getName().getNamespaceURI().equals("http://www.opengis.net/gml/3.2");
+		} catch (NullPointerException e) {
+			return false;
+		}
+	}
+
+	/**
+	 * Checks if the provided cell is compatible for Href client property
+	 * mappings.
+	 * 
+	 * @param cell the cell object to check.
+	 * @return true if it has a compatible transformation identifier.
+	 */
+	public static boolean isHrefClientPropertyCompatible(Cell cell) {
+		if (cell == null)
+			return false;
+		final String trIdent = cell.getTransformationIdentifier();
+		return "eu.esdihumboldt.hale.align.rename".equals(trIdent)
+				|| "eu.esdihumboldt.hale.align.formattedstring".equals(trIdent);
 	}
 }

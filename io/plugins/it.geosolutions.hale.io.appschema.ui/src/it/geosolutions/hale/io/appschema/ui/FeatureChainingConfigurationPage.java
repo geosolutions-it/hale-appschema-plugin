@@ -15,22 +15,19 @@
 
 package it.geosolutions.hale.io.appschema.ui;
 
+import static it.geosolutions.hale.io.appschema.AppSchemaIO.isReferenceType;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.getJoinParameter;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.getSortedJoinConditions;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.getTargetType;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.isNested;
-import it.geosolutions.hale.io.appschema.AppSchemaIO;
-import it.geosolutions.hale.io.appschema.model.ChainConfiguration;
-import it.geosolutions.hale.io.appschema.model.FeatureChaining;
-import it.geosolutions.hale.io.appschema.writer.AbstractAppSchemaConfigurator;
-import it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils;
-import it.geosolutions.hale.io.appschema.writer.UniqueMappingNameGenerator;
-import it.geosolutions.hale.io.appschema.writer.internal.RandomUniqueMappingNameGenerator;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.eclipse.jface.dialogs.IPageChangingListener;
 import org.eclipse.jface.dialogs.PageChangingEvent;
@@ -64,6 +61,7 @@ import eu.esdihumboldt.hale.common.align.model.Alignment;
 import eu.esdihumboldt.hale.common.align.model.AlignmentUtil;
 import eu.esdihumboldt.hale.common.align.model.Cell;
 import eu.esdihumboldt.hale.common.align.model.ChildContext;
+import eu.esdihumboldt.hale.common.align.model.Entity;
 import eu.esdihumboldt.hale.common.align.model.EntityDefinition;
 import eu.esdihumboldt.hale.common.align.model.functions.join.JoinParameter;
 import eu.esdihumboldt.hale.common.align.model.functions.join.JoinParameter.JoinCondition;
@@ -72,6 +70,7 @@ import eu.esdihumboldt.hale.common.align.model.impl.TypeEntityDefinition;
 import eu.esdihumboldt.hale.common.core.io.impl.ComplexValue;
 import eu.esdihumboldt.hale.common.core.io.project.model.IOConfiguration;
 import eu.esdihumboldt.hale.common.schema.SchemaSpaceID;
+import eu.esdihumboldt.hale.common.schema.model.PropertyDefinition;
 import eu.esdihumboldt.hale.common.schema.model.SchemaSpace;
 import eu.esdihumboldt.hale.common.schema.model.TypeDefinition;
 import eu.esdihumboldt.hale.ui.HaleUI;
@@ -89,6 +88,13 @@ import eu.esdihumboldt.hale.ui.service.entity.util.EntityTypeIterableContentProv
 import eu.esdihumboldt.hale.ui.service.schema.SchemaService;
 import eu.esdihumboldt.hale.ui.util.viewer.tree.TreePathFilteredTree;
 import eu.esdihumboldt.hale.ui.util.viewer.tree.TreePathProviderAdapter;
+import it.geosolutions.hale.io.appschema.AppSchemaIO;
+import it.geosolutions.hale.io.appschema.model.ChainConfiguration;
+import it.geosolutions.hale.io.appschema.model.FeatureChaining;
+import it.geosolutions.hale.io.appschema.writer.AbstractAppSchemaConfigurator;
+import it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils;
+import it.geosolutions.hale.io.appschema.writer.UniqueMappingNameGenerator;
+import it.geosolutions.hale.io.appschema.writer.internal.RandomUniqueMappingNameGenerator;
 
 /**
  * Configuration page for feature chaining settings.
@@ -100,8 +106,7 @@ import eu.esdihumboldt.hale.ui.util.viewer.tree.TreePathProviderAdapter;
  * 
  * @author Stefano Costa, GeoSolutions
  */
-public class FeatureChainingConfigurationPage
-		extends
+public class FeatureChainingConfigurationPage extends
 		AbstractConfigurationPage<AbstractAppSchemaConfigurator, ExportWizard<AbstractAppSchemaConfigurator>> {
 
 	private final List<ChainPage> pages = new ArrayList<ChainPage>();
@@ -187,12 +192,8 @@ public class FeatureChainingConfigurationPage
 				page.dispose();
 			pages.clear();
 
-			AlignmentService alignmentService = HaleUI.getServiceProvider().getService(
-					AlignmentService.class);
-			Alignment alignment = alignmentService.getAlignment();
-
 			int pageIdx = 0;
-			Collection<? extends Cell> typeCells = alignment.getActiveTypeCells();
+			Collection<? extends Cell> typeCells = activeTypeCells();
 			for (Cell typeCell : typeCells) {
 				if (AppSchemaMappingUtils.isJoin(typeCell)) {
 					JoinParameter joinParameter = getJoinParameter(typeCell);
@@ -260,7 +261,8 @@ public class FeatureChainingConfigurationPage
 					Object currentPage = event.getCurrentPage();
 					Object targetPage = event.getTargetPage();
 
-					if ((currentPage instanceof ChainPage || currentPage instanceof WorkspaceConfigurationPage)
+					if ((currentPage instanceof ChainPage
+							|| currentPage instanceof WorkspaceConfigurationPage)
 							&& targetPage instanceof FeatureChainingConfigurationPage) {
 						goingBack = true;
 					}
@@ -277,6 +279,23 @@ public class FeatureChainingConfigurationPage
 		else {
 			changeListener = null;
 		}
+	}
+
+	static Collection<? extends Cell> activeTypeCells() {
+		AlignmentService alignmentService = HaleUI.getServiceProvider()
+				.getService(AlignmentService.class);
+		Alignment alignment = alignmentService.getAlignment();
+		return alignment.getActiveTypeCells();
+	}
+
+	static boolean isNestedTypeTargetAReference(PropertyEntityDefinition propDef) {
+		Optional<TypeDefinition> typeDefOpt = Optional.ofNullable(propDef)
+				.map(PropertyEntityDefinition::getDefinition)
+				.map(PropertyDefinition::getPropertyType);
+		if (!typeDefOpt.isPresent())
+			return false;
+		TypeDefinition typeDefinition = typeDefOpt.get();
+		return isReferenceType(typeDefinition);
 	}
 
 	/**
@@ -324,12 +343,12 @@ public class FeatureChainingConfigurationPage
 							.getDefinition().getDisplayName()
 					+ " and "
 					+ AlignmentUtil.getTypeEntity(joinConditions.get(chainIdx).joinProperty)
-							.getDefinition().getDisplayName(), null);
+							.getDefinition().getDisplayName(),
+					null);
 			this.parentPage = FeatureChainingConfigurationPage.this;
 			this.joinCondition = joinConditions.get(chainIdx);
-			this.message = "Please select target for nested source type "
-					+ AlignmentUtil.getTypeEntity(joinCondition.joinProperty).getDefinition()
-							.getDisplayName();
+			this.message = "Please select target for nested source type " + AlignmentUtil
+					.getTypeEntity(joinCondition.joinProperty).getDefinition().getDisplayName();
 			this.joinTypes = joinTypes;
 			this.joinTarget = joinTarget;
 			this.pageIdx = pageIdx;
@@ -363,14 +382,15 @@ public class FeatureChainingConfigurationPage
 			// can't reliably get the previous chain configuration from current
 			// chain configuration, because the latter may not exist yet
 			int previousChainIndex = joinTypes.indexOf(containerTypeSource) - 1;
-			ChainConfiguration previousChainConf = (previousChainIndex >= 0) ? featureChaining
-					.getChain(joinCellId, previousChainIndex) : null;
+			ChainConfiguration previousChainConf = (previousChainIndex >= 0)
+					? featureChaining.getChain(joinCellId, previousChainIndex)
+					: null;
 			ChainConfiguration chainConf = featureChaining.getChain(joinCellId, chainIdx);
 			// set nested type target
 			if (chainConf != null) {
 				nestedTypeTarget = chainConf.getNestedTypeTarget();
-				uniqueMapping = (chainConf.getMappingName() != null && !chainConf.getMappingName()
-						.isEmpty());
+				uniqueMapping = (chainConf.getMappingName() != null
+						&& !chainConf.getMappingName().isEmpty());
 				checkUniqueMapping.setSelection(uniqueMapping);
 			}
 			else {
@@ -427,10 +447,10 @@ public class FeatureChainingConfigurationPage
 			gridData.minimumHeight = 150;
 			tableParent.setLayoutData(gridData);
 
-			final TableViewer tableViewer = new TableViewer(tableParent, SWT.H_SCROLL
-					| SWT.V_SCROLL | SWT.BORDER);
-			tableViewer.getControl().setLayoutData(
-					new GridData(SWT.FILL, SWT.FILL, true, true, 3, 2));
+			final TableViewer tableViewer = new TableViewer(tableParent,
+					SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
+			tableViewer.getControl()
+					.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 2));
 			tableViewer.setContentProvider(ArrayContentProvider.getInstance());
 			tableViewer.getTable().setHeaderVisible(true);
 			tableViewer.getTable().setLinesVisible(true);
@@ -445,7 +465,8 @@ public class FeatureChainingConfigurationPage
 				}
 			});
 
-			final DefinitionLabelProvider dlp = new DefinitionLabelProvider(tableViewer, true, true);
+			final DefinitionLabelProvider dlp = new DefinitionLabelProvider(tableViewer, true,
+					true);
 			TableViewerColumn typeColumn = new TableViewerColumn(tableViewer, SWT.NONE);
 			layout.setColumnData(typeColumn.getColumn(), new ColumnWeightData(1, true));
 			typeColumn.setLabelProvider(new ColumnLabelProvider() {
@@ -489,8 +510,8 @@ public class FeatureChainingConfigurationPage
 
 			PatternFilter patternFilter = new SchemaPatternFilter();
 			patternFilter.setIncludeLeadingWildcard(true);
-			final FilteredTree filteredTree = new TreePathFilteredTree(parent, SWT.SINGLE
-					| SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER, patternFilter, true);
+			final FilteredTree filteredTree = new TreePathFilteredTree(parent,
+					SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER, patternFilter, true);
 			GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true, 3, 2);
 			gridData.minimumHeight = 160;
 			gridData.minimumWidth = 140;
@@ -499,8 +520,8 @@ public class FeatureChainingConfigurationPage
 
 			viewer.setComparator(new DefinitionComparator());
 
-			EntityDefinitionService eds = PlatformUI.getWorkbench().getService(
-					EntityDefinitionService.class);
+			EntityDefinitionService eds = PlatformUI.getWorkbench()
+					.getService(EntityDefinitionService.class);
 			viewer.setContentProvider(new TreePathProviderAdapter(
 					new EntityTypeIterableContentProvider(eds, SchemaSpaceID.TARGET)));
 			viewer.setLabelProvider(new StyledDefinitionLabelProvider(viewer));
@@ -520,12 +541,13 @@ public class FeatureChainingConfigurationPage
 						List<ChildContext> selectedPropertyPath = selectedProperty
 								.getPropertyPath();
 
-						SchemaService schemaService = HaleUI.getServiceProvider().getService(
-								SchemaService.class);
+						SchemaService schemaService = HaleUI.getServiceProvider()
+								.getService(SchemaService.class);
 						SchemaSpace targetSchema = schemaService.getSchemas(SchemaSpaceID.TARGET);
 						List<ChildContext> containerPath = containerTypeTarget.getPropertyPath();
 
-						if (targetSchema.getMappingRelevantTypes().contains(selectedPropertyType)
+						if ((targetSchema.getMappingRelevantTypes().contains(selectedPropertyType)
+								|| isReferenceType(selectedPropertyType))
 								&& isNested(containerPath, selectedPropertyPath)) {
 							nestedTypeTarget = selectedProperty;
 							setPageComplete(true);
@@ -546,6 +568,51 @@ public class FeatureChainingConfigurationPage
 			return viewer;
 		}
 
+		private TypeDefinition inferNestedTypeDefinition() {
+			// get the source types
+			TypeDefinition containerSourceTypeDef = containerTypeSource.getType();
+			final TypeDefinition nestedSourceTypeDef = nestedTypeSource.getType();
+			// one of the source types list is already linked to an target type
+			// so check which is that target type
+			TypeDefinition targetContainerType = joinTarget.getType();
+			// get the 'retype' join that includes our source types and target
+			// type
+			Predicate<Cell> isCellRelated = (cell) -> {
+				// find if retype cell has nestedSourceTypeDef
+				Optional<Collection<? extends Entity>> collection = Optional.ofNullable(cell)
+						.map(Cell::getSource).map(x -> x.values());
+				if (!collection.isPresent())
+					return false;
+				// return true if at least one type = nestedSourceTypeDef
+				// using null-safe Optional chaining
+				return collection.get().stream()
+						.anyMatch(y -> Optional.ofNullable(y).map(Entity::getDefinition)
+								.map(EntityDefinition::getType)
+								.filter(z -> z.equals(nestedSourceTypeDef)).isPresent());
+			};
+			// get 'retype' related cells collection
+			Collection<? extends Cell> activeTypeCells = activeTypeCells().stream()
+					.filter(x -> "eu.esdihumboldt.hale.align.retype"
+							.equals(x.getTransformationIdentifier()))
+					.filter(x -> isCellRelated.test(x)).collect(Collectors.toList());
+			// if activeTypeCells has item
+			if (!activeTypeCells.isEmpty()) {
+				Cell cell = activeTypeCells.stream().findFirst().get();
+				// get the entity (null-safe)
+				Optional<? extends Entity> entityOpt = Optional.ofNullable(cell)
+						.map(x -> x.getTarget()).map(x -> x.values())
+						.flatMap(x -> x.stream().findFirst());
+				// return type from entity (null-safe), or null if no value is
+				// present
+				return entityOpt.map(x -> x.getDefinition()).map(x -> x.getType()).orElse(null);
+			}
+			return null;
+		}
+
+		private boolean isNestedTypeTargetAReference() {
+			return FeatureChainingConfigurationPage.isNestedTypeTargetAReference(nestedTypeTarget);
+		}
+
 		private void updateConfiguration() {
 			ChainConfiguration conf = featureChaining.getChain(joinCellId, chainIdx);
 			if (conf == null) {
@@ -561,13 +628,16 @@ public class FeatureChainingConfigurationPage
 			uniqueMapping = checkUniqueMapping.getSelection();
 			if (uniqueMapping) {
 				// TODO: verify this is correct
-				conf.setMappingName(mappingNameGenerator.generateUniqueMappingName(nestedTypeTarget
-						.getDefinition().getName()));
+				conf.setMappingName(mappingNameGenerator
+						.generateUniqueMappingName(nestedTypeTarget.getDefinition().getName()));
 			}
 			else {
 				conf.setMappingName(null);
 			}
-
+			// set type for ReferenceType case
+			if (isNestedTypeTargetAReference()) {
+				conf.setReferenceLinkedType(this.inferNestedTypeDefinition());
+			}
 			// Update feature chaining parameter
 			parentPage.updateConfiguration(parentPage.getWizard().getProvider());
 
@@ -589,7 +659,8 @@ public class FeatureChainingConfigurationPage
 			@Override
 			public String getText(Object element) {
 				TypeEntityDefinition typeEntityDef = (TypeEntityDefinition) element;
-				PropertyEntityDefinition property = (typeEntityDef.equals(containerTypeSource)) ? joinCondition.baseProperty
+				PropertyEntityDefinition property = (typeEntityDef.equals(containerTypeSource))
+						? joinCondition.baseProperty
 						: joinCondition.joinProperty;
 				return property.getDefinition().getDisplayName();
 			}
