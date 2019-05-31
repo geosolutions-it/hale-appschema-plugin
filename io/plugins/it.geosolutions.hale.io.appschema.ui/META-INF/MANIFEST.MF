@@ -2,13 +2,13 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: GeoServer App-Schema I/O UI
 Bundle-SymbolicName: it.geosolutions.hale.io.appschema.ui;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.1.0.qualifier
 Bundle-Vendor: GeoSolutions
 Require-Bundle: org.eclipse.ui;bundle-version="3.6.2",
  org.eclipse.core.runtime;bundle-version="3.6.0",
  eu.esdihumboldt.hale.ui,
- it.geosolutions.hale.io.appschema;bundle-version="1.0.0",
- it.geosolutions.hale.io.appschema.model.jaxb;bundle-version="1.0.0",
+ it.geosolutions.hale.io.appschema;bundle-version="1.1.0",
+ it.geosolutions.hale.io.appschema.model.jaxb;bundle-version="1.1.0",
  eu.esdihumboldt.hale.common.core,
  eu.esdihumboldt.hale.common.align,
  eu.esdihumboldt.hale.ui.common,
