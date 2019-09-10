@@ -15,11 +15,17 @@
 
 package it.geosolutions.hale.io.appschema;
 
+import java.util.Optional;
+
+import javax.xml.namespace.QName;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import eu.esdihumboldt.hale.common.align.model.Cell;
+import eu.esdihumboldt.hale.common.schema.model.GroupPropertyDefinition;
 import eu.esdihumboldt.hale.common.schema.model.TypeDefinition;
+import eu.esdihumboldt.hale.common.schema.model.constraint.property.Cardinality;
 
 /**
  * Class holding constants and utility methods.
@@ -28,6 +34,10 @@ import eu.esdihumboldt.hale.common.schema.model.TypeDefinition;
  */
 public abstract class AppSchemaIO {
 
+	/**
+	 * 
+	 */
+	private static final String ANONYMOUS_TYPE = "AnonymousType";
 	/**
 	 * Namespace for app-schema mapping elements.
 	 */
@@ -154,6 +164,30 @@ public abstract class AppSchemaIO {
 		} catch (NullPointerException e) {
 			return false;
 		}
+	}
+
+	/**
+	 * Checks if provided TypeDefinition is an anonymous unbounded sequence
+	 * type.
+	 */
+	public static boolean isUnboundedSequence(TypeDefinition typeDef) {
+		if (typeDef == null || typeDef.getName() == null || typeDef.getChildren() == null
+				|| typeDef.getChildren().size() != 1)
+			return false;
+		final QName qname = typeDef.getName();
+		final boolean isAnonymousType = ANONYMOUS_TYPE.equals(qname.getLocalPart());
+		final Optional<GroupPropertyDefinition> sequence = typeDef.getChildren().stream()
+				.filter(c -> c instanceof GroupPropertyDefinition)
+				.map(c -> (GroupPropertyDefinition) c).filter(c -> isCardinality1N(c)).findFirst();
+		return isAnonymousType && sequence.isPresent();
+	}
+
+	private static boolean isCardinality1N(GroupPropertyDefinition definition) {
+		final Cardinality cardinality = definition.getConstraint(Cardinality.class);
+		if (cardinality != null) {
+			return cardinality.getMaxOccurs() == -1L;
+		}
+		return false;
 	}
 
 	/**

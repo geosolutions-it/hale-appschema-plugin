@@ -16,6 +16,7 @@
 package it.geosolutions.hale.io.appschema.ui;
 
 import static it.geosolutions.hale.io.appschema.AppSchemaIO.isReferenceType;
+import static it.geosolutions.hale.io.appschema.AppSchemaIO.isUnboundedSequence;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.getJoinParameter;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.getSortedJoinConditions;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.getTargetType;
@@ -547,7 +548,8 @@ public class FeatureChainingConfigurationPage extends
 						List<ChildContext> containerPath = containerTypeTarget.getPropertyPath();
 
 						if ((targetSchema.getMappingRelevantTypes().contains(selectedPropertyType)
-								|| isReferenceType(selectedPropertyType))
+								|| isReferenceType(selectedPropertyType)
+								|| isUnboundedSequence(selectedPropertyType))
 								&& isNested(containerPath, selectedPropertyPath)) {
 							nestedTypeTarget = selectedProperty;
 							setPageComplete(true);

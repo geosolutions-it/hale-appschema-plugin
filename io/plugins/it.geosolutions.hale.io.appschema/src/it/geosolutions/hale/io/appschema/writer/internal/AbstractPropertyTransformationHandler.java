@@ -29,9 +29,16 @@ import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.isN
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.isNilReason;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.isNillable;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.isXmlAttribute;
+import static java.util.Optional.ofNullable;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -48,17 +55,26 @@ import eu.esdihumboldt.hale.common.align.model.AlignmentUtil;
 import eu.esdihumboldt.hale.common.align.model.Cell;
 import eu.esdihumboldt.hale.common.align.model.ChildContext;
 import eu.esdihumboldt.hale.common.align.model.Condition;
+import eu.esdihumboldt.hale.common.align.model.Entity;
 import eu.esdihumboldt.hale.common.align.model.EntityDefinition;
+import eu.esdihumboldt.hale.common.align.model.ParameterValue;
 import eu.esdihumboldt.hale.common.align.model.Property;
+import eu.esdihumboldt.hale.common.align.model.functions.join.JoinParameter;
+import eu.esdihumboldt.hale.common.align.model.functions.join.JoinParameter.JoinCondition;
 import eu.esdihumboldt.hale.common.align.model.impl.PropertyEntityDefinition;
+import eu.esdihumboldt.hale.common.schema.model.ChildDefinition;
 import eu.esdihumboldt.hale.common.schema.model.Definition;
+import eu.esdihumboldt.hale.common.schema.model.GroupPropertyDefinition;
 import eu.esdihumboldt.hale.common.schema.model.PropertyDefinition;
 import eu.esdihumboldt.hale.common.schema.model.TypeDefinition;
+import eu.esdihumboldt.hale.common.schema.model.constraint.property.Cardinality;
 import eu.esdihumboldt.hale.io.xsd.constraint.XmlAttributeFlag;
 import it.geosolutions.hale.io.appschema.AppSchemaIO;
+import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AnonymousAttributeType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeExpressionMappingType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeMappingType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeMappingType.ClientProperty;
+import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.JdbcMultiValueType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.NamespacesPropertyType.Namespace;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.TypeMappingsPropertyType.FeatureTypeMapping;
 import it.geosolutions.hale.io.appschema.model.ChainConfiguration;
@@ -176,7 +192,8 @@ public abstract class AbstractPropertyTransformationHandler
 
 		if (featureType != null) {
 			// fetch FeatureTypeMapping from mapping configuration
-			if (!AppSchemaIO.isReferenceType(featureType))
+			if (!AppSchemaIO.isReferenceType(featureType)
+					&& !AppSchemaIO.isUnboundedSequence(featureType))
 				this.featureTypeMapping = context.getOrCreateFeatureTypeMapping(featureType,
 						mappingName);
 
@@ -425,6 +442,10 @@ public abstract class AbstractPropertyTransformationHandler
 		if (isGeometryType(targetPropertyType)) {
 			handleXmlElementAsGeometryType(featureType, mappingName, context);
 		}
+		else if (isAnonymousType(featureType)) {
+			attributeMapping = processAnonymousType(featureType, context);
+			return;
+		}
 		else {
 			attributeMapping = context.getOrCreateAttributeMapping(featureType, mappingName,
 					targetPropertyEntityDef.getPropertyPath());
@@ -433,7 +454,6 @@ public abstract class AbstractPropertyTransformationHandler
 			attributeMapping.setTargetAttribute(
 					mapping.buildAttributeXPath(featureType, targetPropertyPath));
 		}
-
 		// set source expression
 		AttributeExpressionMappingType sourceExpression = new AttributeExpressionMappingType();
 		// TODO: is this general enough?
@@ -629,6 +649,116 @@ public abstract class AbstractPropertyTransformationHandler
 			}
 		}
 		return null;
+	}
+
+	private boolean isAnonymousType(final TypeDefinition typeDefinition) {
+		final Optional<String> localName = ofNullable(typeDefinition).map(TypeDefinition::getName)
+				.map(QName::getLocalPart);
+		return "AnonymousType".equals(localName.orElse(null));
+	}
+
+	private AttributeMappingType processAnonymousType(TypeDefinition typeDefinition,
+			AppSchemaMappingContext context) {
+		// currently we only support unbounded multi value anonymous types
+		if (isUnboundedAnonymousMultivalueSequence(typeDefinition)) {
+			final PropertyEntityDefinition targetPropertyEntityDef = targetProperty.getDefinition();
+			final QName clientPropertyName = ofNullable(targetPropertyEntityDef)
+					.map(PropertyEntityDefinition::getDefinition).map(PropertyDefinition::getName)
+					.orElseThrow(() -> new IllegalArgumentException("No target name available"));
+			// get the real root type
+			final TypeDefinition rootTargetType = propertyCell.getTarget().values().stream()
+					.map(Entity::getDefinition).map(EntityDefinition::getType).findFirst()
+					.orElseThrow(() -> new IllegalArgumentException("No target type available"));
+			// fir ChildContext list with only the first path
+			List<ChildContext> childContextList = Arrays
+					.asList(targetPropertyEntityDef.getPropertyPath().get(0));
+			attributeMapping = context.getOrCreateAttributeMapping(rootTargetType, null,
+					childContextList);
+			// set target attribute
+			attributeMapping.setTargetAttribute(
+					mapping.buildAttributeXPath(rootTargetType, childContextList));
+			// create jdbcMultiValue object if is null
+			if (attributeMapping.getJdbcMultipleValue() == null) {
+				generateJdbcMultiValue();
+			}
+			// add anonymousAttribute property for this attribute
+			final String attrStepName = mapping.prefixedPathStep(clientPropertyName);
+			if (!hasAnonymousAttribute(attrStepName)) {
+				AnonymousAttributeType anonAttr = new AnonymousAttributeType();
+				anonAttr.setName(attrStepName);
+				anonAttr.setValue(getSourceExpressionAsCQL());
+				attributeMapping.getAnonymousAttribute().add(anonAttr);
+			}
+			return attributeMapping;
+		}
+		return null;
+	}
+
+	private boolean hasAnonymousAttribute(String attrStepName) {
+		return attributeMapping.getAnonymousAttribute().stream()
+				.anyMatch(a -> Objects.equals(a.getName(), attrStepName));
+	}
+
+	private void generateJdbcMultiValue() {
+		Optional<EntityDefinition> sourceEntityDefinition = propertyCell.getSource().values()
+				.stream().map(Entity::getDefinition).findFirst();
+		Optional<String> sourceTypeLocalName = sourceEntityDefinition.map(EntityDefinition::getType)
+				.map(TypeDefinition::getName).map(QName::getLocalPart);
+		if (!sourceTypeLocalName.isPresent()) {
+			return;
+		}
+		List<ParameterValue> parameters = typeCell.getTransformationParameters().get("join");
+		if (parameters.isEmpty())
+			return;
+		final Set<JoinCondition> joinConditions = parameters.stream()
+				.filter(p -> "default".equals(p.getType())).findFirst()
+				.map(ParameterValue::getValue).filter(o -> o instanceof JoinParameter)
+				.map(o -> (JoinParameter) o).map(JoinParameter::getConditions)
+				.orElse(Collections.emptySet());
+		if (joinConditions.isEmpty())
+			return;
+		JoinCondition joinCondition = joinConditions.stream().findFirst().get();
+		String baseColumn = joinCondition.baseProperty.getLastPathElement().getChild().getName()
+				.getLocalPart();
+		String joinColumn = joinCondition.joinProperty.getLastPathElement().getChild().getName()
+				.getLocalPart();
+		JdbcMultiValueType jdbcValue = new JdbcMultiValueType();
+		jdbcValue.setTargetTable(sourceTypeLocalName.get());
+		jdbcValue.setSourceColumn(baseColumn);
+		jdbcValue.setTargetColumn(joinColumn);
+		attributeMapping.setJdbcMultipleValue(jdbcValue);
+	}
+
+	private boolean isUnboundedAnonymousMultivalueSequence(final TypeDefinition typeDefinition) {
+		if (!isAnonymousType(typeDefinition)) {
+			return false;
+		}
+		// check for join source table
+		// get property source qname
+		final Optional<QName> sourceQname = propertyCell.getSource().values().stream()
+				.map(Entity::getDefinition).map(EntityDefinition::getType)
+				.map(TypeDefinition::getName).findFirst();
+		// get join source qnames
+		final boolean isJoin = "eu.esdihumboldt.hale.align.join"
+				.equals(typeCell.getTransformationIdentifier());
+		if (!sourceQname.isPresent() || !isJoin) {
+			return false;
+		}
+		// has our join a source with same Qname?
+		final Map<String, Collection<Entity>> sourceMap = (Map) ofNullable(typeCell)
+				.map(Cell::getSource).map(m -> m.asMap()).orElse(Collections.emptyMap());
+		final Optional<QName> joinQname = sourceMap.entrySet().stream().map(e -> e.getValue())
+				.flatMap(c -> c.stream()).map(Entity::getDefinition).map(EntityDefinition::getType)
+				.map(TypeDefinition::getName).filter(n -> n.equals(sourceQname.get())).findFirst();
+		if (!joinQname.isPresent()) {
+			return false;
+		}
+		// check if anonymous sequence is unbounded
+		final Optional<GroupPropertyDefinition> gpropDefinition = typeDefinition
+				.getDeclaredChildren().stream().map(ChildDefinition::asGroup).findFirst();
+		final Long maxOccurs = gpropDefinition.map(d -> d.getConstraint(Cardinality.class))
+				.map(Cardinality::getMaxOccurs).orElse(null);
+		return Objects.equals(maxOccurs, -1L);
 	}
 
 }

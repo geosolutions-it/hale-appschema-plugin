@@ -465,6 +465,7 @@
           </documentation>
         </annotation>
       </element>
+      <element name="jdbcMultipleValue" type="as:JdbcMultiValueType" minOccurs="0"></element>
       <element name="ClientProperty" minOccurs="0" maxOccurs="unbounded">
         <complexType>
           <sequence>
@@ -481,6 +482,34 @@
           </sequence>
         </complexType>
       </element>
+      <element name="anonymousAttribute" type="as:AnonymousAttributeType" minOccurs="0" maxOccurs="unbounded"></element>
     </sequence>
   </complexType>
+  
+  <complexType name="JdbcMultiValueType">
+    <sequence>
+      <element name="sourceColumn" type="string" minOccurs="1">
+      </element>
+      <element name="targetTable" type="string" minOccurs="1">
+      </element>
+      <element name="targetColumn" type="string" minOccurs="1">
+      </element>
+     </sequence>
+   </complexType>
+   
+   <complexType name="AnonymousAttributeType">
+     <sequence>
+       <element name="name" type="string">
+         <annotation>
+           <documentation>name of the client property/xml element attribute</documentation>
+         </annotation>
+       </element>
+       <element name="value" type="string">
+         <annotation>
+           <documentation>OGC CQL expression for the attribute value</documentation>
+         </annotation>
+       </element>
+     </sequence>
+   </complexType>
+      
 </schema>

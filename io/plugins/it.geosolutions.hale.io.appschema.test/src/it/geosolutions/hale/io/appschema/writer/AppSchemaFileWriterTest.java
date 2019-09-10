@@ -22,7 +22,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import it.geosolutions.hale.io.appschema.AppSchemaIO;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -88,6 +87,7 @@ import eu.esdihumboldt.hale.common.schema.io.SchemaIO;
 import eu.esdihumboldt.hale.common.schema.io.SchemaReader;
 import eu.esdihumboldt.hale.common.schema.model.Schema;
 import eu.esdihumboldt.hale.common.schema.model.impl.DefaultSchemaSpace;
+import it.geosolutions.hale.io.appschema.AppSchemaIO;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.SourceDataStoresPropertyType.DataStore;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.SourceDataStoresPropertyType.DataStore.Parameters;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.SourceDataStoresPropertyType.DataStore.Parameters.Parameter;
@@ -135,11 +135,11 @@ public class AppSchemaFileWriterTest {
 
 				// get provider
 				IOProvider provider = null;
-				IOProviderDescriptor descriptor = IOProviderExtension.getInstance().getFactory(
-						providerId);
+				IOProviderDescriptor descriptor = IOProviderExtension.getInstance()
+						.getFactory(providerId);
 				if (descriptor == null) {
-					throw new RuntimeException("Could not load I/O provider with ID: "
-							+ resource.getProviderId());
+					throw new RuntimeException(
+							"Could not load I/O provider with ID: " + resource.getProviderId());
 				}
 
 				provider = descriptor.createExtensionObject();
@@ -258,8 +258,8 @@ public class AppSchemaFileWriterTest {
 
 	}
 
-	private void writeAlignment(File targetFile, String contentType) throws IOException,
-			IOProviderConfigurationException {
+	private void writeAlignment(File targetFile, String contentType)
+			throws IOException, IOProviderConfigurationException {
 		AbstractAppSchemaConfigurator alignWriter = new AppSchemaMappingFileWriter();
 		prepareProvider(alignWriter, project, tempDir.toURI());
 		alignWriter.setAlignment(alignment);
@@ -326,8 +326,8 @@ public class AppSchemaFileWriterTest {
 	}
 
 	private void checkArchive(File archive) throws IOException {
-		final File tempFile = File
-				.createTempFile(Long.toString(System.currentTimeMillis()), ".xml");
+		final File tempFile = File.createTempFile(Long.toString(System.currentTimeMillis()),
+				".xml");
 		ZipInputStream zis = null;
 		Document doc = null;
 		try {
@@ -399,15 +399,15 @@ public class AppSchemaFileWriterTest {
 			zis.closeEntry();
 
 			ZipEntry unitFtFile = zis.getNextEntry();
-			checkFileEntry(unitFtFile, "lcv/LandCoverVector/LandCoverUnit/"
-					+ AppSchemaIO.FEATURETYPE_FILE);
+			checkFileEntry(unitFtFile,
+					"lcv/LandCoverVector/LandCoverUnit/" + AppSchemaIO.FEATURETYPE_FILE);
 			doc = readDocument(zis);
 			checkFeatureTypeDocument(doc, "LandCoverUnit");
 			zis.closeEntry();
 
 			ZipEntry unitLayerFile = zis.getNextEntry();
-			checkFileEntry(unitLayerFile, "lcv/LandCoverVector/LandCoverUnit/"
-					+ AppSchemaIO.LAYER_FILE);
+			checkFileEntry(unitLayerFile,
+					"lcv/LandCoverVector/LandCoverUnit/" + AppSchemaIO.LAYER_FILE);
 			doc = readDocument(zis);
 			checkLayerDocument(doc, "LandCoverUnit");
 			zis.closeEntry();
@@ -417,15 +417,15 @@ public class AppSchemaFileWriterTest {
 			zis.closeEntry();
 
 			ZipEntry datasetFtFile = zis.getNextEntry();
-			checkFileEntry(datasetFtFile, "lcv/LandCoverVector/LandCoverDataset/"
-					+ AppSchemaIO.FEATURETYPE_FILE);
+			checkFileEntry(datasetFtFile,
+					"lcv/LandCoverVector/LandCoverDataset/" + AppSchemaIO.FEATURETYPE_FILE);
 			doc = readDocument(zis);
 			checkFeatureTypeDocument(doc, "LandCoverDataset");
 			zis.closeEntry();
 
 			ZipEntry datasetLayerFile = zis.getNextEntry();
-			checkFileEntry(datasetLayerFile, "lcv/LandCoverVector/LandCoverDataset/"
-					+ AppSchemaIO.LAYER_FILE);
+			checkFileEntry(datasetLayerFile,
+					"lcv/LandCoverVector/LandCoverDataset/" + AppSchemaIO.LAYER_FILE);
 			doc = readDocument(zis);
 			checkLayerDocument(doc, "LandCoverDataset");
 			zis.closeEntry();
@@ -563,12 +563,12 @@ public class AppSchemaFileWriterTest {
 		assertNotNull(doc);
 		assertEquals(featureTypeName + "_featureType",
 				getFirstElementByTagName(doc.getDocumentElement(), "id").getTextContent());
-		assertEquals(featureTypeName, getFirstElementByTagName(doc.getDocumentElement(), "name")
-				.getTextContent());
+		assertEquals(featureTypeName,
+				getFirstElementByTagName(doc.getDocumentElement(), "name").getTextContent());
 		assertEquals(featureTypeName,
 				getFirstElementByTagName(doc.getDocumentElement(), "nativeName").getTextContent());
-		assertEquals(featureTypeName, getFirstElementByTagName(doc.getDocumentElement(), "title")
-				.getTextContent());
+		assertEquals(featureTypeName,
+				getFirstElementByTagName(doc.getDocumentElement(), "title").getTextContent());
 		assertEquals(featureTypeName,
 				getFirstElementByTagName(doc.getDocumentElement(), "abstract").getTextContent());
 		Element nsEl = getFirstElementByTagName(doc.getDocumentElement(), "namespace");
@@ -576,19 +576,19 @@ public class AppSchemaFileWriterTest {
 		assertEquals("lcv_namespace", getFirstElementByTagName(nsEl, "id").getTextContent());
 		Element storeEl = getFirstElementByTagName(doc.getDocumentElement(), "store");
 		assertNotNull(storeEl);
-		assertEquals("LandCoverVector_datastore", getFirstElementByTagName(storeEl, "id")
-				.getTextContent());
+		assertEquals("LandCoverVector_datastore",
+				getFirstElementByTagName(storeEl, "id").getTextContent());
 	}
 
 	private void checkLayerDocument(Document doc, final String featureTypeName) {
 		assertNotNull(doc);
 		assertEquals(featureTypeName + "_layer",
 				getFirstElementByTagName(doc.getDocumentElement(), "id").getTextContent());
-		assertEquals(featureTypeName, getFirstElementByTagName(doc.getDocumentElement(), "name")
-				.getTextContent());
+		assertEquals(featureTypeName,
+				getFirstElementByTagName(doc.getDocumentElement(), "name").getTextContent());
 		Element resourceEl = getFirstElementByTagName(doc.getDocumentElement(), "resource");
 		assertNotNull(resourceEl);
-		assertEquals(featureTypeName + "_featureType", getFirstElementByTagName(resourceEl, "id")
-				.getTextContent());
+		assertEquals(featureTypeName + "_featureType",
+				getFirstElementByTagName(resourceEl, "id").getTextContent());
 	}
 }

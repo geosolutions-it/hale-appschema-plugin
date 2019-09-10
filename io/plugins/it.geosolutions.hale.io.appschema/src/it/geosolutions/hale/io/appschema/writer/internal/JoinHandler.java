@@ -41,6 +41,7 @@ import eu.esdihumboldt.hale.common.align.model.impl.PropertyEntityDefinition;
 import eu.esdihumboldt.hale.common.align.model.impl.TypeEntityDefinition;
 import eu.esdihumboldt.hale.common.schema.model.PropertyDefinition;
 import eu.esdihumboldt.hale.common.schema.model.TypeDefinition;
+import it.geosolutions.hale.io.appschema.AppSchemaIO;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeExpressionMappingType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeMappingType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.TypeMappingsPropertyType.FeatureTypeMapping;
@@ -109,6 +110,14 @@ public class JoinHandler implements TypeTransformationHandler {
 			ChainConfiguration chainConf = null;
 			if (featureChaining != null) {
 				chainConf = featureChaining.getChain(typeCell.getId(), chainIdx);
+				if (chainConf != null) {
+					// detect unbounded anonymous sequence
+					if (AppSchemaIO.isUnboundedSequence(
+							chainConf.getNestedTypeTarget().getDefinition().getPropertyType())) {
+						// nothing to do here
+						return null;
+					}
+				}
 				if (chainConf != null && chainConf.getPrevChainIndex() >= 0) {
 					previousChainConf = featureChaining.getChain(typeCell.getId(),
 							chainConf.getPrevChainIndex());
@@ -238,6 +247,9 @@ public class JoinHandler implements TypeTransformationHandler {
 			if (nestedFTMapping != null && nestedFTPath != null) {
 				AttributeMappingType containerJoinMapping = context.getOrCreateAttributeMapping(
 						containerTypeTargetType, containerTypeTargetMappingName, nestedFTPath);
+				// no real join available, get out
+				if (containerJoinMapping == null)
+					return containerFTMapping;
 				containerJoinMapping.setTargetAttribute(
 						mapping.buildAttributeXPath(containerTypeTargetType, nestedFTPath));
 				// set isMultiple attribute
