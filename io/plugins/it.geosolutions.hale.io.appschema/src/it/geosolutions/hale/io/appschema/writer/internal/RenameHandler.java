@@ -15,9 +15,9 @@
 
 package it.geosolutions.hale.io.appschema.writer.internal;
 
-import it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils;
 import eu.esdihumboldt.cst.functions.core.Rename;
 import eu.esdihumboldt.hale.common.align.model.Property;
+import it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils;
 
 /**
  * Translates a property cell specifying an {@link Rename} transformation

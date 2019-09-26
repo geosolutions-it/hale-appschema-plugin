@@ -10,11 +10,11 @@ import eu.esdihumboldt.hale.common.align.model.functions.RetypeFunction;
  * 
  * @author Stefano Costa, GeoSolutions
  */
-public class TypeTransformationHandlerFactory {
+public class TypeTransformationHandlerFactory implements TypeTransformationHandlerFactoryTrait {
 
-	private static TypeTransformationHandlerFactory instance;
+	private static TypeTransformationHandlerFactoryTrait instance;
 
-	private TypeTransformationHandlerFactory() {
+	public TypeTransformationHandlerFactory() {
 
 	}
 
@@ -23,7 +23,7 @@ public class TypeTransformationHandlerFactory {
 	 * 
 	 * @return the factory instance
 	 */
-	public static TypeTransformationHandlerFactory getInstance() {
+	public static TypeTransformationHandlerFactoryTrait getInstance() {
 		if (instance == null) {
 			instance = new TypeTransformationHandlerFactory();
 		}
@@ -32,15 +32,9 @@ public class TypeTransformationHandlerFactory {
 	}
 
 	/**
-	 * Creates a new type transformation handler instance to handle the
-	 * transformation function specified by the provided identifier.
-	 * 
-	 * @param typeTransformationIdentifier the type transformation function
-	 *            identifier
-	 * @return the type transformation handler instance
-	 * @throws UnsupportedTransformationException if the specified
-	 *             transformation is not supported
+	 * @see it.geosolutions.hale.io.appschema.writer.internal.TypeTransformationHandlerFactoryTrait#createTypeTransformationHandler(java.lang.String)
 	 */
+	@Override
 	public TypeTransformationHandler createTypeTransformationHandler(
 			String typeTransformationIdentifier) throws UnsupportedTransformationException {
 		if (typeTransformationIdentifier == null || typeTransformationIdentifier.trim().isEmpty()) {

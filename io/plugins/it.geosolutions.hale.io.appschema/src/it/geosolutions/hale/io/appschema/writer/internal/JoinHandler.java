@@ -48,7 +48,7 @@ import it.geosolutions.hale.io.appschema.model.ChainConfiguration;
 import it.geosolutions.hale.io.appschema.model.FeatureChaining;
 import it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils;
 import it.geosolutions.hale.io.appschema.writer.internal.mapping.AppSchemaMappingContext;
-import it.geosolutions.hale.io.appschema.writer.internal.mapping.AppSchemaMappingWrapper;
+import it.geosolutions.hale.io.appschema.writer.internal.mapping.MappingWrapper;
 
 /**
  * Translates a type cell specifying a {@link Join} transformation function to
@@ -79,7 +79,7 @@ public class JoinHandler implements TypeTransformationHandler {
 	@Override
 	public FeatureTypeMapping handleTypeTransformation(Cell typeCell,
 			AppSchemaMappingContext context) {
-		AppSchemaMappingWrapper mapping = context.getMappingWrapper();
+		MappingWrapper mapping = context.getMappingWrapper();
 		Alignment alignment = context.getAlignment();
 		FeatureChaining featureChaining = context.getFeatureChaining();
 

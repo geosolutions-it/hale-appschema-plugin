@@ -38,6 +38,8 @@
     </properties>
 
     <modules>
+        <module>io/plugins/eu.esdihumboldt.hale.io.mongo</module>
+        <module>io/plugins/eu.esdihumboldt.hale.io.mongo.ui</module>
         <module>doc/plugins/it.geosolutions.hale.doc.appschema</module>
         <module>doc/features/it.geosolutions.hale.doc.appschema.feature</module>
         <module>io/features/it.geosolutions.hale.io.appschema.feature</module>

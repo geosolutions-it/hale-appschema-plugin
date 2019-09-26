@@ -137,7 +137,7 @@ public class AppSchemaIsolatedWorkspacesMappingTest {
 	 */
 	@Test
 	public void testNullWorkspaceConfiguration() throws IOException {
-		AppSchemaMappingGenerator generator = new AppSchemaMappingGenerator(alignment,
+		MappingGenerator generator = new AppSchemaMappingGenerator(alignment,
 				targetSchemaSpace, null, featureChainingConf, null);
 
 		IOReporter reporter = new DefaultIOReporter(targetSchemaSpace.getSchemas().iterator()
@@ -177,7 +177,7 @@ public class AppSchemaIsolatedWorkspacesMappingTest {
 	 */
 	@Test
 	public void testNonIsolatedRenamed() throws IOException {
-		AppSchemaMappingGenerator generator = new AppSchemaMappingGenerator(alignment,
+		MappingGenerator generator = new AppSchemaMappingGenerator(alignment,
 				targetSchemaSpace, null, featureChainingConf, workspaceConf);
 
 		IOReporter reporter = new DefaultIOReporter(targetSchemaSpace.getSchemas().iterator()
@@ -219,7 +219,7 @@ public class AppSchemaIsolatedWorkspacesMappingTest {
 	public void testBothIsolated() throws IOException {
 		workspaceConf.getWorkspaces().forEach(ws -> ws.setIsolated(true));
 
-		AppSchemaMappingGenerator generator = new AppSchemaMappingGenerator(alignment,
+		MappingGenerator generator = new AppSchemaMappingGenerator(alignment,
 				targetSchemaSpace, null, featureChainingConf, workspaceConf);
 
 		IOReporter reporter = new DefaultIOReporter(targetSchemaSpace.getSchemas().iterator()
@@ -267,7 +267,7 @@ public class AppSchemaIsolatedWorkspacesMappingTest {
 	public void testStationsIsolated() throws IOException {
 		workspaceConf.getWorkspace(STATIONS_NS_URI).setIsolated(true);
 
-		AppSchemaMappingGenerator generator = new AppSchemaMappingGenerator(alignment,
+		MappingGenerator generator = new AppSchemaMappingGenerator(alignment,
 				targetSchemaSpace, null, featureChainingConf, workspaceConf);
 
 		IOReporter reporter = new DefaultIOReporter(targetSchemaSpace.getSchemas().iterator()

@@ -51,7 +51,7 @@ public class AppSchemaMappingContext {
 	private Collection<? extends TypeDefinition> relevantTargetTypes;
 	private FeatureChaining chainingConf;
 	private WorkspaceConfiguration workspaceConf;
-	private final AppSchemaMappingWrapper mappingWrapper;
+	private final MappingWrapper mappingWrapper;
 	private final Map<QName, String> mappingNames = new HashMap<>();
 	private final UniqueMappingNameGenerator mappingNameGenerator = new RandomUniqueMappingNameGenerator();
 
@@ -60,7 +60,7 @@ public class AppSchemaMappingContext {
 	 * 
 	 * @param mappingWrapper the mapping wrapper
 	 */
-	public AppSchemaMappingContext(AppSchemaMappingWrapper mappingWrapper) {
+	public AppSchemaMappingContext(MappingWrapper mappingWrapper) {
 		this.mappingWrapper = mappingWrapper;
 		this.relevantTargetTypes = new HashSet<TypeDefinition>();
 	}
@@ -71,7 +71,7 @@ public class AppSchemaMappingContext {
 	 * @param mappingWrapper the mapping wrapper
 	 * @param alignment the alignment
 	 */
-	public AppSchemaMappingContext(AppSchemaMappingWrapper mappingWrapper, Alignment alignment) {
+	public AppSchemaMappingContext(MappingWrapper mappingWrapper, Alignment alignment) {
 		this(mappingWrapper);
 		this.alignment = alignment;
 	}
@@ -83,7 +83,7 @@ public class AppSchemaMappingContext {
 	 * @param alignment the aligment
 	 * @param relevantTargetTypes the set of mapping relevant target types
 	 */
-	public AppSchemaMappingContext(AppSchemaMappingWrapper mappingWrapper, Alignment alignment,
+	public AppSchemaMappingContext(MappingWrapper mappingWrapper, Alignment alignment,
 			Collection<? extends TypeDefinition> relevantTargetTypes) {
 		this(mappingWrapper, alignment);
 		if (this.relevantTargetTypes != null) {
@@ -100,7 +100,7 @@ public class AppSchemaMappingContext {
 	 * @param chainingConf the feature chaining configuration
 	 * @param workspaceConf the workspace configuration
 	 */
-	public AppSchemaMappingContext(AppSchemaMappingWrapper mappingWrapper, Alignment alignment,
+	public AppSchemaMappingContext(MappingWrapper mappingWrapper, Alignment alignment,
 			Collection<? extends TypeDefinition> relevantTargetTypes, FeatureChaining chainingConf,
 			WorkspaceConfiguration workspaceConf) {
 		this(mappingWrapper, alignment);
@@ -114,7 +114,7 @@ public class AppSchemaMappingContext {
 	/**
 	 * @return the mappingWrapper
 	 */
-	public AppSchemaMappingWrapper getMappingWrapper() {
+	public MappingWrapper getMappingWrapper() {
 		return mappingWrapper;
 	}
 

@@ -110,6 +110,7 @@ import it.geosolutions.hale.io.appschema.writer.internal.RetypeHandler;
 import it.geosolutions.hale.io.appschema.writer.internal.UnsupportedTransformationException;
 import it.geosolutions.hale.io.appschema.writer.internal.mapping.AppSchemaMappingContext;
 import it.geosolutions.hale.io.appschema.writer.internal.mapping.AppSchemaMappingWrapper;
+import it.geosolutions.hale.io.appschema.writer.internal.mapping.MappingWrapper;
 
 @SuppressWarnings("javadoc")
 public class AppSchemaMappingTest {
@@ -163,7 +164,7 @@ public class AppSchemaMappingTest {
 	private static TypeDefinition referenceType;
 	private static Set<TypeDefinition> targetTypes = new HashSet<TypeDefinition>();
 
-	private AppSchemaMappingWrapper mappingWrapper;
+	private MappingWrapper mappingWrapper;
 	private AppSchemaMappingContext mappingContext;
 
 	@BeforeClass
