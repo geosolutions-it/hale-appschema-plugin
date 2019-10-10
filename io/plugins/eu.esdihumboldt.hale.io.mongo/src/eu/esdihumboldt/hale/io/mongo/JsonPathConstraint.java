@@ -57,4 +57,55 @@ public final class JsonPathConstraint implements TypeConstraint, PropertyConstra
 	public boolean isInheritable() {
 		return false;
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((jsonPath == null) ? 0 : jsonPath.hashCode());
+		result = prime * result + ((key == null) ? 0 : key.hashCode());
+		result = prime * result + ((rootKey == null) ? 0 : rootKey.hashCode());
+		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		result = prime * result + (valid ? 1231 : 1237);
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		JsonPathConstraint other = (JsonPathConstraint) obj;
+		if (jsonPath == null) {
+			if (other.jsonPath != null)
+				return false;
+		} else if (!jsonPath.equals(other.jsonPath))
+			return false;
+		if (key == null) {
+			if (other.key != null)
+				return false;
+		} else if (!key.equals(other.key))
+			return false;
+		if (rootKey == null) {
+			if (other.rootKey != null)
+				return false;
+		} else if (!rootKey.equals(other.rootKey))
+			return false;
+		if (type != other.type)
+			return false;
+		if (valid != other.valid)
+			return false;
+		return true;
+	}
+	
+	
 }

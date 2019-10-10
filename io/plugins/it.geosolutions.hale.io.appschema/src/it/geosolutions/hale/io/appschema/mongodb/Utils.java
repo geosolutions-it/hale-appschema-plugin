@@ -10,6 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import com.google.common.collect.ListMultimap;
 
 import eu.esdihumboldt.hale.common.align.model.Cell;
+import eu.esdihumboldt.hale.common.align.model.ChildContext;
 import eu.esdihumboldt.hale.common.align.model.Entity;
 import eu.esdihumboldt.hale.common.align.model.ParameterValue;
 import eu.esdihumboldt.hale.common.align.model.Property;
@@ -130,6 +131,13 @@ public final class Utils {
 	}
 
 	public static String getRelativeJsonPath(Property source) {
+		final StringBuilder sbuilder = new StringBuilder();
+		for (ChildContext childContext : source.getDefinition().getPropertyPath()) {
+			String idnt = childContext.getChild().getName().getLocalPart();
+			if (sbuilder.length() > 0)
+				sbuilder.append(".");
+			sbuilder.append(idnt);
+		}
 		JsonPathConstraint propertyConstraint = source.getDefinition().getDefinition()
 				.getConstraint(JsonPathConstraint.class);
 		if (!propertyConstraint.isValid()) {
@@ -138,7 +146,7 @@ public final class Utils {
 		JsonPathConstraint typeConstraint = source.getDefinition().getType()
 				.getConstraint(JsonPathConstraint.class);
 		String rootJsonPath = typeConstraint.getJsonPath();
-		String propertyJsonPath = propertyConstraint.getJsonPath();
+		String propertyJsonPath = sbuilder.toString();
 		if (rootJsonPath == null || propertyJsonPath == null) {
 			return propertyJsonPath;
 		}
