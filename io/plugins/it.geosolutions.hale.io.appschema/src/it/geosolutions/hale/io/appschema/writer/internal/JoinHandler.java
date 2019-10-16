@@ -111,9 +111,10 @@ public class JoinHandler implements TypeTransformationHandler {
 			if (featureChaining != null) {
 				chainConf = featureChaining.getChain(typeCell.getId(), chainIdx);
 				if (chainConf != null) {
-					// detect unbounded anonymous sequence
+					// detect unbounded anonymous sequence or element
 					if (AppSchemaIO.isUnboundedSequence(
-							chainConf.getNestedTypeTarget().getDefinition().getPropertyType())) {
+							chainConf.getNestedTypeTarget().getDefinition().getPropertyType())
+							|| AppSchemaIO.isUnboundedElement(chainConf.getNestedTypeTarget())) {
 						// nothing to do here
 						return null;
 					}

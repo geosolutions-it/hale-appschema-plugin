@@ -800,6 +800,7 @@ public class AppSchemaMappingWrapper {
 			jdbcValue.setSourceColumn(attrMapping.getJdbcMultipleValue().getSourceColumn());
 			jdbcValue.setTargetColumn(attrMapping.getJdbcMultipleValue().getTargetColumn());
 			jdbcValue.setTargetTable(attrMapping.getJdbcMultipleValue().getTargetTable());
+			jdbcValue.setTargetValue(attrMapping.getJdbcMultipleValue().getTargetValue());
 			clone.setJdbcMultipleValue(jdbcValue);
 		}
 		// clone anonymous attributes if exists

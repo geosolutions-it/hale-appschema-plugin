@@ -494,6 +494,8 @@
       </element>
       <element name="targetColumn" type="string" minOccurs="1">
       </element>
+      <element name="targetValue" type="string" minOccurs="0">
+      </element>
      </sequence>
    </complexType>
    

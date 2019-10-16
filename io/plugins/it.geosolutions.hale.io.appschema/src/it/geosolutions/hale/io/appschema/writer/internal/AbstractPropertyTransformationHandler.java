@@ -446,6 +446,10 @@ public abstract class AbstractPropertyTransformationHandler
 			attributeMapping = processAnonymousType(featureType, context);
 			return;
 		}
+		else if (isSequenceElement(featureType)) {
+			attributeMapping = processSequenceElement(featureType, context);
+			return;
+		}
 		else {
 			attributeMapping = context.getOrCreateAttributeMapping(featureType, mappingName,
 					targetPropertyEntityDef.getPropertyPath());
@@ -657,6 +661,47 @@ public abstract class AbstractPropertyTransformationHandler
 		return "AnonymousType".equals(localName.orElse(null));
 	}
 
+	private boolean isSequenceElement(final TypeDefinition typeDefinition) {
+		final PropertyEntityDefinition targetPropertyEntityDef = targetProperty.getDefinition();
+		if (targetPropertyEntityDef == null
+				|| !ofNullable(propertyCell).map(Cell::getSource).map(x -> x.values()).isPresent())
+			return false;
+		final Optional<QName> sourceQname = propertyCell.getSource().values().stream()
+				.map(Entity::getDefinition).map(EntityDefinition::getType)
+				.map(TypeDefinition::getName).findFirst();
+		// get join source qnames
+		final boolean isJoin = sourceQname.isPresent()
+				&& "eu.esdihumboldt.hale.align.join".equals(typeCell.getTransformationIdentifier());
+		return AppSchemaIO.isUnboundedElement(targetPropertyEntityDef) && isJoin;
+	}
+
+	private AttributeMappingType processSequenceElement(TypeDefinition typeDefinition,
+			AppSchemaMappingContext context) {
+		final PropertyEntityDefinition targetPropertyEntityDef = targetProperty.getDefinition();
+		final QName clientPropertyName = ofNullable(targetPropertyEntityDef)
+				.map(PropertyEntityDefinition::getDefinition).map(PropertyDefinition::getName)
+				.orElseThrow(() -> new IllegalArgumentException("No target name available"));
+		// get the real root type
+		final TypeDefinition rootTargetType = propertyCell.getTarget().values().stream()
+				.map(Entity::getDefinition).map(EntityDefinition::getType).findFirst()
+				.orElseThrow(() -> new IllegalArgumentException("No target type available"));
+		// fir ChildContext list with only the first path
+		List<ChildContext> childContextList = Arrays
+				.asList(targetPropertyEntityDef.getPropertyPath().get(0));
+		attributeMapping = context.getOrCreateAttributeMapping(rootTargetType, null,
+				childContextList);
+		// set target attribute
+		attributeMapping
+				.setTargetAttribute(mapping.buildAttributeXPath(rootTargetType, childContextList));
+		// create jdbcMultiValue object if is null
+		if (attributeMapping.getJdbcMultipleValue() == null) {
+			generateJdbcMultiValue();
+		}
+		attributeMapping.getJdbcMultipleValue().setTargetValue(getSourceExpressionAsCQL());
+		// targetValue
+		return attributeMapping;
+	}
+
 	private AttributeMappingType processAnonymousType(TypeDefinition typeDefinition,
 			AppSchemaMappingContext context) {
 		// currently we only support unbounded multi value anonymous types
@@ -730,7 +775,8 @@ public abstract class AbstractPropertyTransformationHandler
 	}
 
 	private boolean isUnboundedAnonymousMultivalueSequence(final TypeDefinition typeDefinition) {
-		if (!isAnonymousType(typeDefinition)) {
+		if (!isAnonymousType(typeDefinition) || !ofNullable(propertyCell).map(Cell::getSource)
+				.map(x -> x.values()).isPresent()) {
 			return false;
 		}
 		// check for join source table

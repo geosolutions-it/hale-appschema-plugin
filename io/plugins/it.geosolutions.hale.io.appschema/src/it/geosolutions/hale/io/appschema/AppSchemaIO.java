@@ -23,6 +23,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import eu.esdihumboldt.hale.common.align.model.Cell;
+import eu.esdihumboldt.hale.common.align.model.ChildContext;
+import eu.esdihumboldt.hale.common.align.model.impl.PropertyEntityDefinition;
+import eu.esdihumboldt.hale.common.schema.model.ChildDefinition;
 import eu.esdihumboldt.hale.common.schema.model.GroupPropertyDefinition;
 import eu.esdihumboldt.hale.common.schema.model.TypeDefinition;
 import eu.esdihumboldt.hale.common.schema.model.constraint.property.Cardinality;
@@ -188,6 +191,15 @@ public abstract class AppSchemaIO {
 			return cardinality.getMaxOccurs() == -1L;
 		}
 		return false;
+	}
+
+	public static boolean isUnboundedElement(final PropertyEntityDefinition selectedProperty) {
+		final Optional<Cardinality> cardinality = Optional.of(selectedProperty)
+				.map(PropertyEntityDefinition::getLastPathElement).map(ChildContext::getChild)
+				.map(cd -> (ChildDefinition<Object>) cd)
+				.map(cd -> cd.getConstraint(Cardinality.class)).map(x -> x);
+		final Long maxOccurs = cardinality.map(Cardinality::getMaxOccurs).orElse(1L);
+		return maxOccurs == -1L;
 	}
 
 	/**
