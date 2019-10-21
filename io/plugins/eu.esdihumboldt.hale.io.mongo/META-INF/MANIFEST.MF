@@ -2,12 +2,12 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Mongo
 Bundle-SymbolicName: eu.esdihumboldt.hale.io.mongo;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.1.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-ClassPath: ., lib/mongo-java-driver.jar
 Require-Bundle: org.eclipse.core.contenttype;bundle-version="3.5.0",
  eu.esdihumboldt.hale.common.core;bundle-version="3.3.0",
  eu.esdihumboldt.hale.common.schema;bundle-version="3.3.0",
- org.mongodb.mongo-java-driver;bundle-version="3.4.2",
  com.vividsolutions.jts;bundle-version="1.13.0",
  eu.esdihumboldt.hale.common.align;bundle-version="3.3.0",
  com.google.guava;bundle-version="17.0.0"
@@ -39,4 +39,5 @@ Import-Package: eu.esdihumboldt.hale.common.core.io,
  eu.esdihumboldt.util.io,
  com.vividsolutions.jts,
  com.vividsolutions.jts.geom
-Export-Package: eu.esdihumboldt.hale.io.mongo
+Export-Package: eu.esdihumboldt.hale.io.mongo,
+  com.mongodb
