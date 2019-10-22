@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.xml.namespace.QName;
+
 import eu.esdihumboldt.hale.common.align.model.ChildContext;
 import eu.esdihumboldt.hale.common.align.model.impl.PropertyEntityDefinition;
 import eu.esdihumboldt.hale.common.schema.model.TypeDefinition;
@@ -274,5 +276,7 @@ public interface MappingWrapper {
 	 * @return Mapping prefix optional
 	 */
 	Optional<String> getMappingPrefix();
+
+	String prefixedPathStep(QName qname);
 
 }

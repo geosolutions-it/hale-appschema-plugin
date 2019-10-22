@@ -38,12 +38,14 @@ import eu.esdihumboldt.hale.common.schema.model.TypeDefinition;
 import eu.esdihumboldt.hale.io.xsd.constraint.XmlElements;
 import eu.esdihumboldt.hale.io.xsd.model.XmlElement;
 import it.geosolutions.hale.io.appschema.AppSchemaIO;
+import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AnonymousAttributeType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AppSchemaDataAccessType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeExpressionMappingType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeExpressionMappingType.Expression;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeMappingType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeMappingType.ClientProperty;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.IncludesPropertyType;
+import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.JdbcMultiValueType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.NamespacesPropertyType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.NamespacesPropertyType.Namespace;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.SourceDataStoresPropertyType;
@@ -230,12 +232,7 @@ public abstract class AppSchemaMappingWrapperBase implements MappingWrapper {
 			// only properties (not groups) are taken into account in building
 			// the xpath expression
 			if (child.asProperty() != null) {
-				String namespaceURI = child.getName().getNamespaceURI();
-				String prefix = child.getName().getPrefix();
-				String name = child.getName().getLocalPart();
-
-				Namespace ns = getOrCreateNamespace(namespaceURI, prefix);
-				String path = ns.getPrefix() + ":" + name;
+				String path = prefixedPathStep(child.getName());
 				if (contextId != null) {
 					// XPath indices start from 1, whereas contextId starts from
 					// 0 --> add 1
@@ -255,6 +252,19 @@ public abstract class AppSchemaMappingWrapperBase implements MappingWrapper {
 
 		return xPath;
 
+	}
+
+	/**
+	 * Returns the prefixed step string for the provided ChildDefinition.
+	 */
+	@Override
+	public String prefixedPathStep(QName qname) {
+		String namespaceURI = qname.getNamespaceURI();
+		String prefix = qname.getPrefix();
+		String name = qname.getLocalPart();
+		Namespace ns = getOrCreateNamespace(namespaceURI, prefix);
+		String path = ns.getPrefix() + ":" + name;
+		return path;
 	}
 
 	/**
@@ -731,6 +741,25 @@ public abstract class AppSchemaMappingWrapperBase implements MappingWrapper {
 		clone.setTargetAttribute(attrMapping.getTargetAttribute());
 		clone.setTargetAttributeNode(attrMapping.getTargetAttributeNode());
 		clone.setTargetQueryString(attrMapping.getTargetQueryString());
+
+		if (attrMapping.getJdbcMultipleValue() != null) {
+			final JdbcMultiValueType jdbcValue = new JdbcMultiValueType();
+			jdbcValue.setSourceColumn(attrMapping.getJdbcMultipleValue().getSourceColumn());
+			jdbcValue.setTargetColumn(attrMapping.getJdbcMultipleValue().getTargetColumn());
+			jdbcValue.setTargetTable(attrMapping.getJdbcMultipleValue().getTargetTable());
+			jdbcValue.setTargetValue(attrMapping.getJdbcMultipleValue().getTargetValue());
+			clone.setJdbcMultipleValue(jdbcValue);
+		}
+		// clone anonymous attributes if exists
+		if (attrMapping.getAnonymousAttribute() != null
+				&& !attrMapping.getAnonymousAttribute().isEmpty()) {
+			for (AnonymousAttributeType anonType : attrMapping.getAnonymousAttribute()) {
+				final AnonymousAttributeType newAnonType = new AnonymousAttributeType();
+				newAnonType.setName(anonType.getName());
+				newAnonType.setValue(anonType.getValue());
+				clone.getAnonymousAttribute().add(newAnonType);
+			}
+		}
 
 		return clone;
 	}

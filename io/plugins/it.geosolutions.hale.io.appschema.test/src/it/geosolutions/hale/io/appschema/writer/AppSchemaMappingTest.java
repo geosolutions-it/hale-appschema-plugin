@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -83,13 +84,21 @@ import eu.esdihumboldt.hale.common.lookup.impl.LookupTableImpl;
 import eu.esdihumboldt.hale.common.schema.SchemaSpaceID;
 import eu.esdihumboldt.hale.common.schema.io.SchemaReader;
 import eu.esdihumboldt.hale.common.schema.model.ChildDefinition;
+import eu.esdihumboldt.hale.common.schema.model.Definition;
+import eu.esdihumboldt.hale.common.schema.model.DefinitionGroup;
 import eu.esdihumboldt.hale.common.schema.model.DefinitionUtil;
+import eu.esdihumboldt.hale.common.schema.model.GroupPropertyConstraint;
+import eu.esdihumboldt.hale.common.schema.model.GroupPropertyDefinition;
+import eu.esdihumboldt.hale.common.schema.model.PropertyDefinition;
 import eu.esdihumboldt.hale.common.schema.model.Schema;
+import eu.esdihumboldt.hale.common.schema.model.TypeConstraint;
 import eu.esdihumboldt.hale.common.schema.model.TypeDefinition;
+import eu.esdihumboldt.hale.common.schema.model.constraint.property.Cardinality;
 import eu.esdihumboldt.hale.common.schema.model.impl.DefaultTypeIndex;
 import eu.esdihumboldt.hale.common.schema.persist.hsd.HaleSchemaReader;
 import eu.esdihumboldt.hale.common.test.TestUtil;
 import eu.esdihumboldt.hale.io.xsd.reader.XmlSchemaReader;
+import it.geosolutions.hale.io.appschema.AppSchemaIO;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AppSchemaDataAccessType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeMappingType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeMappingType.ClientProperty;
@@ -1425,6 +1434,16 @@ public class AppSchemaMappingTest {
 				Arrays.asList(member, lcu, observation, observationFeature, observationClass));
 	}
 
+	private ListMultimap<String, Property> getNestedUnitReferenceTypeTargetPropertyUnbounded() {
+		ChildDefinition<?> memberChildDef = DefinitionUtil.getChild(landCoverDatasetType,
+				new QName(LANDCOVER_NS, "maintainers"));
+		assertNotNull(memberChildDef);
+		ChildDefinition<?> hrefChildDef = DefinitionUtil.getChild(memberChildDef,
+				new QName(LANDCOVER_NS, "codename"));
+		assertNotNull(hrefChildDef);
+		return createNestedTargetProperty(Arrays.asList(memberChildDef, hrefChildDef));
+	}
+
 	private ListMultimap<String, Property> getMetaDataHrefTargetProperty() {
 		ChildDefinition<?> metaDataChildDef = DefinitionUtil.getChild(landCoverUnitType,
 				new QName(GML_NS, "metaDataProperty"));
@@ -1722,5 +1741,168 @@ public class AppSchemaMappingTest {
 		} catch (JAXBException e) {
 			log.debug("Could not serialize mapping", e);
 		}
+	}
+
+	@Test
+	public void testInferAnonymousUnboundedSequence() {
+		final GroupPropertyDefinition groupDef = new GroupPropertyDefinition() {
+
+			@Override
+			public int compareTo(Definition<?> arg0) {
+				return 0;
+			}
+
+			@Override
+			public URI getLocation() {
+				return null;
+			}
+
+			@Override
+			public QName getName() {
+				return null;
+			}
+
+			@Override
+			public Iterable<GroupPropertyConstraint> getExplicitConstraints() {
+				return null;
+			}
+
+			@Override
+			public String getDisplayName() {
+				return null;
+			}
+
+			@Override
+			public String getDescription() {
+				return null;
+			}
+
+			@Override
+			public <T extends GroupPropertyConstraint> T getConstraint(Class<T> constraintType) {
+				if (constraintType == Cardinality.class) {
+					return (T) Cardinality.get(0, -1);
+				}
+				return null;
+			}
+
+			@Override
+			public TypeDefinition getParentType() {
+				return null;
+			}
+
+			@Override
+			public DefinitionGroup getDeclaringGroup() {
+				return null;
+			}
+
+			@Override
+			public PropertyDefinition asProperty() {
+				return null;
+			}
+
+			@Override
+			public GroupPropertyDefinition asGroup() {
+				return null;
+			}
+
+			@Override
+			public String getIdentifier() {
+				return null;
+			}
+
+			@Override
+			public Collection<? extends ChildDefinition<?>> getDeclaredChildren() {
+				return null;
+			}
+
+			@Override
+			public ChildDefinition<?> getChild(QName name) {
+				return null;
+			}
+
+			@Override
+			public void addChild(ChildDefinition<?> child) {
+			}
+
+			@Override
+			public boolean allowFlatten() {
+				return false;
+			}
+		};
+
+		final TypeDefinition typeDef = new TypeDefinition() {
+
+			@Override
+			public Collection<? extends ChildDefinition<?>> getDeclaredChildren() {
+				return null;
+			}
+
+			@Override
+			public ChildDefinition<?> getChild(QName name) {
+				return null;
+			}
+
+			@Override
+			public void addChild(ChildDefinition<?> child) {
+
+			}
+
+			@Override
+			public int compareTo(Definition<?> o) {
+				return 0;
+			}
+
+			@Override
+			public URI getLocation() {
+				return null;
+			}
+
+			@Override
+			public QName getName() {
+				return new QName("NS", "AnonymousType");
+			}
+
+			@Override
+			public String getIdentifier() {
+				return null;
+			}
+
+			@Override
+			public Iterable<TypeConstraint> getExplicitConstraints() {
+				return null;
+			}
+
+			@Override
+			public String getDisplayName() {
+				return null;
+			}
+
+			@Override
+			public String getDescription() {
+				return null;
+			}
+
+			@Override
+			public <T extends TypeConstraint> T getConstraint(Class<T> constraintType) {
+				return null;
+			}
+
+			@Override
+			public TypeDefinition getSuperType() {
+				return null;
+			}
+
+			@Override
+			public Collection<? extends TypeDefinition> getSubTypes() {
+				return null;
+			}
+
+			@Override
+			public Collection<? extends ChildDefinition<?>> getChildren() {
+				return Arrays.asList(groupDef);
+			}
+		};
+
+		assertTrue(AppSchemaIO.isUnboundedSequence(typeDef));
 	}
 }

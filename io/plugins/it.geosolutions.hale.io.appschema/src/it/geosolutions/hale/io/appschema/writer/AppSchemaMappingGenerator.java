@@ -552,6 +552,7 @@ public class AppSchemaMappingGenerator implements MappingGenerator {
 	protected void createTypeMappings(AppSchemaMappingContext context, IOReporter reporter) {
 		Collection<? extends Cell> typeCells = alignment.getTypeCells();
 		for (Cell typeCell : typeCells) {
+			Collection<? extends Cell> propertyCells = getPropertyCells(typeCell);
 			String typeTransformId = typeCell.getTransformationIdentifier();
 			TypeTransformationHandler typeTransformHandler = null;
 
@@ -561,25 +562,21 @@ public class AppSchemaMappingGenerator implements MappingGenerator {
 				FeatureTypeMapping ftMapping = typeTransformHandler
 						.handleTypeTransformation(typeCell, context);
 
-				if (ftMapping != null) {
-					Collection<? extends Cell> propertyCells = getPropertyCells(typeCell);
-					for (Cell propertyCell : propertyCells) {
-						String propertyTransformId = propertyCell.getTransformationIdentifier();
-						PropertyTransformationHandler propertyTransformHandler = null;
-
-						try {
-							propertyTransformHandler = PropertyTransformationHandlerFactory
-									.getInstance()
-									.createPropertyTransformationHandler(propertyTransformId);
-							propertyTransformHandler.handlePropertyTransformation(typeCell,
-									propertyCell, context);
-						} catch (UnsupportedTransformationException e) {
-							String errMsg = MessageFormat.format(
-									"Error processing property cell {0}", propertyCell.getId());
-							log.warn(errMsg, e);
-							if (reporter != null) {
-								reporter.warn(new IOMessageImpl(errMsg, e));
-							}
+				for (Cell propertyCell : propertyCells) {
+					String propertyTransformId = propertyCell.getTransformationIdentifier();
+					PropertyTransformationHandler propertyTransformHandler = null;
+					try {
+						propertyTransformHandler = PropertyTransformationHandlerFactory
+								.getInstance()
+								.createPropertyTransformationHandler(propertyTransformId);
+						propertyTransformHandler.handlePropertyTransformation(typeCell,
+								propertyCell, context);
+					} catch (UnsupportedTransformationException e) {
+						String errMsg = MessageFormat.format("Error processing property cell {0}",
+								propertyCell.getId());
+						log.warn(errMsg, e);
+						if (reporter != null) {
+							reporter.warn(new IOMessageImpl(errMsg, e));
 						}
 					}
 				}
