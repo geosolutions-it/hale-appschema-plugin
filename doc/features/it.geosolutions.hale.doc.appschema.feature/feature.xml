@@ -2,7 +2,7 @@
 <feature
       id="it.geosolutions.hale.doc.appschema.feature"
       label="App-Schema I/O Provider - Documentation"
-      version="1.2.0.qualifier"
+      version="1.2.0"
       provider-name="GeoSolutions">
 
    <license url="">
