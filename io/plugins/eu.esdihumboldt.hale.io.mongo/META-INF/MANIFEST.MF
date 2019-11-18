@@ -4,7 +4,7 @@ Bundle-Name: Mongo
 Bundle-SymbolicName: eu.esdihumboldt.hale.io.mongo;singleton:=true
 Bundle-Version: 1.2.0
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Bundle-ClassPath: ., ./lib/mongo-java-driver.jar
+Bundle-ClassPath: ., lib/mongo-java-driver.jar
 Require-Bundle: org.eclipse.core.contenttype;bundle-version="3.5.0",
  eu.esdihumboldt.hale.common.core;bundle-version="3.3.0",
  eu.esdihumboldt.hale.common.schema;bundle-version="3.3.0",
