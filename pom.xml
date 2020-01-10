@@ -6,7 +6,7 @@
 
     <groupId>it.geosolutions</groupId>
     <artifactId>hale-parent</artifactId>
-    <version>1.2.0</version>
+    <version>3.5.0.release</version>
 
     <parent>
         <groupId>eu.esdihumboldt</groupId>
