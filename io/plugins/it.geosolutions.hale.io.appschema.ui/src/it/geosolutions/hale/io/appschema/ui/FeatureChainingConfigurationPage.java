@@ -16,6 +16,8 @@
 package it.geosolutions.hale.io.appschema.ui;
 
 import static it.geosolutions.hale.io.appschema.AppSchemaIO.isReferenceType;
+import static it.geosolutions.hale.io.appschema.AppSchemaIO.isUnboundedElement;
+import static it.geosolutions.hale.io.appschema.AppSchemaIO.isUnboundedSequence;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.getJoinParameter;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.getSortedJoinConditions;
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.getTargetType;
@@ -532,9 +534,10 @@ public class FeatureChainingConfigurationPage extends
 				@Override
 				public void selectionChanged(SelectionChangedEvent event) {
 					TreeSelection selection = (TreeSelection) event.getSelection();
+					final Object firstElement = selection.getFirstElement();
 					if (!selection.isEmpty()
 							&& selection.getFirstElement() instanceof PropertyEntityDefinition) {
-						PropertyEntityDefinition selectedProperty = (PropertyEntityDefinition) selection
+						final PropertyEntityDefinition selectedProperty = (PropertyEntityDefinition) selection
 								.getFirstElement();
 						TypeDefinition selectedPropertyType = selectedProperty.getDefinition()
 								.getPropertyType();
@@ -547,7 +550,9 @@ public class FeatureChainingConfigurationPage extends
 						List<ChildContext> containerPath = containerTypeTarget.getPropertyPath();
 
 						if ((targetSchema.getMappingRelevantTypes().contains(selectedPropertyType)
-								|| isReferenceType(selectedPropertyType))
+								|| isReferenceType(selectedPropertyType)
+								|| isUnboundedSequence(selectedPropertyType)
+								|| isUnboundedElement(selectedProperty))
 								&& isNested(containerPath, selectedPropertyPath)) {
 							nestedTypeTarget = selectedProperty;
 							setPageComplete(true);

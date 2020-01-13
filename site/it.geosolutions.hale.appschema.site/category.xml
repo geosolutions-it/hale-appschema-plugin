@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/it.geosolutions.hale.io.appschema.feature_1.1.0.qualifier.jar" id="it.geosolutions.hale.io.appschema.feature" version="1.1.0.qualifier">
+   <feature url="features/it.geosolutions.hale.io.appschema.feature_3.5.0.release.jar" id="it.geosolutions.hale.io.appschema.feature" version="3.5.0.release">
       <category name="it.geosolutions.hale.appschema"/>
    </feature>
-   <feature url="features/it.geosolutions.hale.doc.appschema.feature_1.1.0.qualifier.jar" id="it.geosolutions.hale.doc.appschema.feature" version="1.1.0.qualifier">
+   <feature url="features/it.geosolutions.hale.doc.appschema.feature_3.5.0.release.jar" id="it.geosolutions.hale.doc.appschema.feature" version="3.5.0.release">
       <category name="it.geosolutions.hale.appschema"/>
    </feature>
    <category-def name="it.geosolutions.hale.appschema" label="GeoServer App-Schema Support for HALE"/>

@@ -6,18 +6,22 @@
 
     <groupId>it.geosolutions</groupId>
     <artifactId>hale-parent</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>3.5.0.release</version>
 
     <parent>
         <groupId>eu.esdihumboldt</groupId>
         <artifactId>rcp-parent</artifactId>
-        <version>3.5.0-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
 
     <packaging>pom</packaging>
     <name>Parent for all HALE plug-in projects</name>
 
     <pluginRepositories>
+        <pluginRepository>
+           <id>reficio</id>
+           <url>http://repo.reficio.org/maven/</url>
+          </pluginRepository>
         <pluginRepository>
             <id>bintray</id>
             <name>Groovy Bintray</name>
@@ -38,6 +42,8 @@
     </properties>
 
     <modules>
+        <module>io/plugins/eu.esdihumboldt.hale.io.mongo</module>
+        <module>io/plugins/eu.esdihumboldt.hale.io.mongo.ui</module>
         <module>doc/plugins/it.geosolutions.hale.doc.appschema</module>
         <module>doc/features/it.geosolutions.hale.doc.appschema.feature</module>
         <module>io/features/it.geosolutions.hale.io.appschema.feature</module>

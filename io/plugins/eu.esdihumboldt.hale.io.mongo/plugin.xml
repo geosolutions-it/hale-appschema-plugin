@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.core.contenttype.contentTypes">
+      <content-type
+            id="eu.esdihumboldt.hale.io.mongo"
+            name="MongoDB"
+            priority="normal">
+      </content-type>
+   </extension>
+   <extension
+         point="eu.esdihumboldt.hale.io.provider">
+      <provider
+            class="eu.esdihumboldt.hale.io.mongo.SchemaReader"
+            id="eu.esdihumboldt.hale.io.mongo.schema"
+            name="MongoDB Schema">
+         <contentType
+               ref="eu.esdihumboldt.hale.io.mongo">
+         </contentType>
+      </provider>
+   </extension>
+   <extension
+         point="eu.esdihumboldt.hale.align.function">
+      <propertyFunction
+            category="eu.esdihumboldt.hale.align.general"
+            description="Links a MongoDB collection with a type."
+            identifier="eu.esdihumboldt.hale.io.mongo.link"
+            name="CollectionLink">
+         <sourceProperties>
+            <property
+                  description="The source property to be mapped to a property in the target schema"
+                  maxOccurrence="1"
+                  minOccurrence="1">
+            </property>
+         </sourceProperties>
+         <targetProperties>
+            <property
+                  description="The target property that corresponds to the source property"
+                  maxOccurrence="1"
+                  minOccurrence="1">
+            </property>
+         </targetProperties>
+      </propertyFunction>
+   </extension>
+   <extension
+         point="eu.esdihumboldt.hale.align.transformation">
+      <typeTransformation
+            class="eu.esdihumboldt.hale.io.mongo.CollectionLink"
+            engine="eu.esdihumboldt.align.java"
+            function="eu.esdihumboldt.hale.io.mongo.link"
+            id="eu.esdihumboldt.hale.io.mongo.link">
+      </typeTransformation>
+   </extension>
+
+</plugin>

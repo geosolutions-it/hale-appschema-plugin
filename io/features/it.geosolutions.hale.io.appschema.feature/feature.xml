@@ -2,7 +2,7 @@
 <feature
       id="it.geosolutions.hale.io.appschema.feature"
       label="App-Schema I/O Provider"
-      version="1.1.0.qualifier"
+      version="3.5.0.release"
       provider-name="GeoSolutions">
 
    <license url="">
@@ -48,6 +48,8 @@
       <import plugin="eu.esdihumboldt.hale.ui.util"/>
       <import plugin="org.eclipse.jface"/>
       <import plugin="org.eclipse.osgi"/>
+      <import plugin="eu.esdihumboldt.hale.io.mongo"/>
+      <import plugin="eu.esdihumboldt.hale.io.mongo.ui"/>
    </requires>
 
    <plugin
@@ -66,6 +68,20 @@
 
    <plugin
          id="it.geosolutions.hale.io.appschema.model.jaxb"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="eu.esdihumboldt.hale.io.mongo"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="eu.esdihumboldt.hale.io.mongo.ui"
          download-size="0"
          install-size="0"
          version="0.0.0"

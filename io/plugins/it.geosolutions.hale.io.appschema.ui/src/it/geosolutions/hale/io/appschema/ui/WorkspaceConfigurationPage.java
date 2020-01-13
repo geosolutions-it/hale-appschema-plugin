@@ -62,7 +62,7 @@ import it.geosolutions.hale.io.appschema.model.WorkspaceConfiguration;
 import it.geosolutions.hale.io.appschema.model.WorkspaceMetadata;
 import it.geosolutions.hale.io.appschema.ui.FeatureChainingConfigurationPage.ChainPage;
 import it.geosolutions.hale.io.appschema.writer.AbstractAppSchemaConfigurator;
-import it.geosolutions.hale.io.appschema.writer.AppSchemaMappingGenerator;
+import it.geosolutions.hale.io.appschema.writer.MappingGenerator;
 
 /**
  * Configuration page for workspace related settings.
@@ -209,7 +209,7 @@ public class WorkspaceConfigurationPage extends
 		AbstractAppSchemaConfigurator configurator = getWizard().getProvider();
 		DefaultIOReporter reporter = new DefaultIOReporter(configurator.getTarget(),
 				"Generate Temporary App-Schema Mapping", AppSchemaIO.CONTENT_TYPE_MAPPING, true);
-		AppSchemaMappingGenerator generator;
+		MappingGenerator generator;
 		try {
 			configurator.generateMapping(reporter);
 			generator = configurator.getMappingGenerator();

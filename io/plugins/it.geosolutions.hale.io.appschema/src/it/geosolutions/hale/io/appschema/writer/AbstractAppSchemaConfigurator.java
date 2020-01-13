@@ -1,9 +1,6 @@
 package it.geosolutions.hale.io.appschema.writer;
 
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.resolvePropertyTypes;
-import it.geosolutions.hale.io.appschema.AppSchemaIO;
-import it.geosolutions.hale.io.appschema.model.FeatureChaining;
-import it.geosolutions.hale.io.appschema.model.WorkspaceConfiguration;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -44,7 +41,11 @@ import eu.esdihumboldt.hale.common.core.io.supplier.DefaultInputSupplier;
 import eu.esdihumboldt.hale.common.core.io.supplier.LocatableInputSupplier;
 import eu.esdihumboldt.hale.common.schema.SchemaSpaceID;
 import eu.esdihumboldt.hale.common.schema.io.SchemaIO;
+import it.geosolutions.hale.io.appschema.AppSchemaIO;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.SourceDataStoresPropertyType.DataStore;
+import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.SourceDataStoresPropertyType.DataStore.Parameters.Parameter;
+import it.geosolutions.hale.io.appschema.model.FeatureChaining;
+import it.geosolutions.hale.io.appschema.model.WorkspaceConfiguration;
 
 /**
  * Base class for HALE alignment to app-schema mapping translators.
@@ -56,7 +57,7 @@ public abstract class AbstractAppSchemaConfigurator extends AbstractAlignmentWri
 	/**
 	 * The app-schema mapping generator.
 	 */
-	protected AppSchemaMappingGenerator generator;
+	protected MappingGenerator generator;
 
 	@Override
 	public boolean isCancelable() {
@@ -73,7 +74,7 @@ public abstract class AbstractAppSchemaConfigurator extends AbstractAlignmentWri
 	 * 
 	 * @return the current mapping generator instance
 	 */
-	public AppSchemaMappingGenerator getMappingGenerator() {
+	public MappingGenerator getMappingGenerator() {
 		return generator;
 	}
 
@@ -87,8 +88,8 @@ public abstract class AbstractAppSchemaConfigurator extends AbstractAlignmentWri
 	 *             provider configuration
 	 * @throws IOException if an error occurs loading the mapping template file
 	 */
-	public void generateMapping(IOReporter reporter) throws IOProviderConfigurationException,
-			IOException {
+	public void generateMapping(IOReporter reporter)
+			throws IOProviderConfigurationException, IOException {
 		if (getAlignment() == null) {
 			throw new IOProviderConfigurationException("No alignment was provided.");
 		}
@@ -108,8 +109,19 @@ public abstract class AbstractAppSchemaConfigurator extends AbstractAlignmentWri
 
 		WorkspaceConfiguration workspaceConfParam = getWorkspaceConfigurationParameter();
 
-		generator = new AppSchemaMappingGenerator(getAlignment(), getTargetSchema(),
-				dataStoreParam, featureChainingParam, workspaceConfParam);
+		// get the db uri
+		final String dataStoreURI = dataStoreParam.getParameters().getParameter().stream()
+				.filter(p -> "data_store".equals(p.getName())).findFirst().map(Parameter::getValue)
+				.orElse("");
+		// decide MappingGeneratot implementation
+		if (dataStoreURI.startsWith("mongodb")) {
+			generator = new MongoMappingGenerator(getAlignment(), getTargetSchema(), dataStoreParam,
+					featureChainingParam, workspaceConfParam);
+		}
+		else {
+			generator = new AppSchemaMappingGenerator(getAlignment(), getTargetSchema(),
+					dataStoreParam, featureChainingParam, workspaceConfParam);
+		}
 		generator.generateMapping(reporter);
 	}
 
@@ -268,9 +280,9 @@ public abstract class AbstractAppSchemaConfigurator extends AbstractAlignmentWri
 					String scheme = pathUri.getScheme();
 					LocatableInputSupplier<? extends InputStream> input = null;
 					if (scheme != null) {
-						if (scheme.equals("http") || scheme.equals("https")
-								|| scheme.equals("file") || scheme.equals("platform")
-								|| scheme.equals("bundle") || scheme.equals("jar")) {
+						if (scheme.equals("http") || scheme.equals("https") || scheme.equals("file")
+								|| scheme.equals("platform") || scheme.equals("bundle")
+								|| scheme.equals("jar")) {
 							input = new DefaultInputSupplier(pathUri);
 						}
 						else {
@@ -281,7 +293,8 @@ public abstract class AbstractAppSchemaConfigurator extends AbstractAlignmentWri
 						// now can't open that, can we?
 						reporter.error(new IOMessageImpl(
 								"Skipped resource because it cannot be loaded from "
-										+ pathUri.toString(), null));
+										+ pathUri.toString(),
+								null));
 						continue;
 					}
 
@@ -297,8 +310,8 @@ public abstract class AbstractAppSchemaConfigurator extends AbstractAlignmentWri
 					try {
 						newDirectory.mkdir();
 					} catch (SecurityException e) {
-						throw new IOException(
-								"Can not create directory " + newDirectory.toString(), e);
+						throw new IOException("Can not create directory " + newDirectory.toString(),
+								e);
 					}
 
 					// the filename
@@ -322,11 +335,11 @@ public abstract class AbstractAppSchemaConfigurator extends AbstractAlignmentWri
 					Value ct = providerConfig.get(ImportProvider.PARAM_CONTENT_TYPE);
 					IContentType contentType = null;
 					if (ct != null) {
-						contentType = HalePlatform.getContentTypeManager().getContentType(
-								ct.as(String.class));
+						contentType = HalePlatform.getContentTypeManager()
+								.getContentType(ct.as(String.class));
 					}
-					ResourceAdvisor ra = ResourceAdvisorExtension.getInstance().getAdvisor(
-							contentType);
+					ResourceAdvisor ra = ResourceAdvisorExtension.getInstance()
+							.getAdvisor(contentType);
 
 					// copy the resource
 					progress.setCurrentTask("Copying resource at " + path);

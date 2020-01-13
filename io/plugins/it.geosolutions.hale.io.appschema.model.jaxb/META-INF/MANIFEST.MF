@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: GeoServer App-Schema Mappings Configuration Model
 Bundle-SymbolicName: it.geosolutions.hale.io.appschema.model.jaxb;singleton:=true
 Bundle-Vendor: GeoSolutions
-Bundle-Version: 1.1.0.qualifier
+Bundle-Version: 3.5.0.release
 Export-Package: it.geosolutions.hale.io.appschema.impl.internal.generate
  d.app_schema;version="1.0.1";uses:="javax.xml.bind,javax.xml.bind.annot
  ation,javax.xml.bind.annotation.adapters",it.geosolutions.hale.io.appsc

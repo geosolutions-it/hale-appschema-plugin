@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>eu.esdihumboldt</groupId>
+    <artifactId>eu.esdihumboldt.hale.io.mongo</artifactId>
+    <packaging>eclipse-plugin</packaging>
+
+    <parent>
+        <groupId>it.geosolutions</groupId>
+        <artifactId>hale-parent</artifactId>
+        <version>3.5.0.release</version>
+        <relativePath>../../..</relativePath>
+    </parent>
+
+    <properties>
+        <doc.output.folder>${project.build.directory}/gen-doc/</doc.output.folder>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.10</version>
+                <executions>
+                    <execution>
+                        <id>copy-libraries</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <item>
+                                    <groupId>org.mongodb</groupId>
+                                    <artifactId>mongo-java-driver</artifactId>
+                                    <version>3.4.2</version>
+                                </item>
+                            </artifactItems>
+                            <outputDirectory>lib</outputDirectory>
+                            <stripVersion>true</stripVersion>
+                            <overWriteReleases>true</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>target-platform-configuration</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-packaging-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+

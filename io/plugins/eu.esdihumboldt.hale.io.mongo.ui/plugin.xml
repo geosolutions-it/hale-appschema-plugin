@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="eu.esdihumboldt.hale.ui.io.source">
+      <source
+            class="eu.esdihumboldt.hale.io.mongodb.ui.SourcePage"
+            contentType="eu.esdihumboldt.hale.io.mongo"
+            description="Load a MongoDB collection schema"
+            icon="icons/mongodb.jpeg"
+            id="eu.esdihumboldt.hale.io.mongodb.ui.source.schema"
+            name="MongoDB"
+            priority="0"
+            providerType="eu.esdihumboldt.hale.common.schema.io.SchemaReader">
+      </source>
+   </extension>
+   <extension
+         point="eu.esdihumboldt.hale.ui.io.config">
+      <configPage
+            class="eu.esdihumboldt.hale.io.mongodb.ui.AuthenticationPage"
+            order="0">
+         <provider
+               ref="eu.esdihumboldt.hale.io.mongo.schema">
+         </provider>
+      </configPage>
+      <configPage
+            class="eu.esdihumboldt.hale.io.mongodb.ui.CollectionsPage"
+            order="1">
+         <provider
+               ref="eu.esdihumboldt.hale.io.mongo.schema">
+         </provider>
+      </configPage>
+   </extension>
+
+</plugin>
