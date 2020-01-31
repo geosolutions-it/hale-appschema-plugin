@@ -31,6 +31,7 @@ import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.isN
 import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.isXmlAttribute;
 import static java.util.Optional.ofNullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -69,6 +70,7 @@ import eu.esdihumboldt.hale.common.schema.model.PropertyDefinition;
 import eu.esdihumboldt.hale.common.schema.model.TypeDefinition;
 import eu.esdihumboldt.hale.common.schema.model.constraint.property.Cardinality;
 import eu.esdihumboldt.hale.io.xsd.constraint.XmlAttributeFlag;
+import eu.esdihumboldt.hale.io.xsd.reader.internal.AnonymousXmlType;
 import it.geosolutions.hale.io.appschema.AppSchemaIO;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AnonymousAttributeType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeExpressionMappingType;
@@ -91,7 +93,7 @@ import it.geosolutions.hale.io.appschema.writer.internal.mapping.MappingWrapper;
 public abstract class AbstractPropertyTransformationHandler
 		implements PropertyTransformationHandler {
 
-	private static final ALogger log = ALoggerFactory
+	private static final ALogger LOG = ALoggerFactory
 			.getLogger(AbstractPropertyTransformationHandler.class);
 
 	/**
@@ -136,6 +138,9 @@ public abstract class AbstractPropertyTransformationHandler
 		this.propertyCell = propertyCell;
 		// TODO: does this hold for any transformation function?
 		this.targetProperty = getTargetProperty(propertyCell);
+		LOG.debug(
+				"Starting property transformation for: \n type cell = {} \n property cell = {} \n target property = {}",
+				this.typeCell, this.propertyCell, this.targetProperty);
 		PropertyEntityDefinition targetPropertyEntityDef = targetProperty.getDefinition();
 		PropertyDefinition targetPropertyDef = targetPropertyEntityDef.getDefinition();
 
@@ -144,6 +149,7 @@ public abstract class AbstractPropertyTransformationHandler
 		if (AppSchemaMappingUtils.isJoin(typeCell)) {
 			if (context.getFeatureChaining() != null) {
 				ChainConfiguration chainConf = findChainConfiguration(context);
+				LOG.debug("Chain configuration found: {0}", chainConf);
 				if (chainConf != null) {
 					// check if is a ReferenceType with a linked proper type
 					featureType = chainConf.getReferenceLinkedType() == null
@@ -160,8 +166,10 @@ public abstract class AbstractPropertyTransformationHandler
 			}
 		}
 		if (featureType == null) {
+			LOG.debug("feature type not found from join setup");
 			featureType = getTargetType(typeCell).getDefinition().getType();
 		}
+		LOG.debug("feature type = {}", featureType);
 
 		// double check: don't map properties that belong to a feature
 		// chaining configuration other than the current one
@@ -187,6 +195,12 @@ public abstract class AbstractPropertyTransformationHandler
 					// don't translate mapping, will do it (or have done it)
 					// elsewhere!
 					featureType = null;
+					if (LOG.isDebugEnabled())
+						LOG.debug(
+								"Don't map properties that belong to a feature chaining "
+										+ "configuration other than the current one. \n"
+										+ "chainConf = {} \n" + "isSameParentType = {}",
+								chainConf, isSameParentType);
 					break;
 				}
 			}
@@ -194,8 +208,7 @@ public abstract class AbstractPropertyTransformationHandler
 
 		if (featureType != null) {
 			// fetch FeatureTypeMapping from mapping configuration
-			if (!AppSchemaIO.isReferenceType(featureType)
-					&& !AppSchemaIO.isUnboundedSequence(featureType))
+			if (isValidFeatureType(featureType))
 				this.featureTypeMapping = context.getOrCreateFeatureTypeMapping(featureType,
 						mappingName);
 
@@ -230,6 +243,12 @@ public abstract class AbstractPropertyTransformationHandler
 		}
 
 		return attributeMapping;
+	}
+
+	static boolean isValidFeatureType(TypeDefinition featureType) {
+		return !AppSchemaIO.isReferenceType(featureType)
+				&& !AppSchemaIO.isUnboundedSequence(featureType)
+				&& !(featureType instanceof AnonymousXmlType);
 	}
 
 	/**
@@ -374,6 +393,15 @@ public abstract class AbstractPropertyTransformationHandler
 	 */
 	protected void handleAsXmlAttribute(TypeDefinition featureType, String mappingName,
 			AppSchemaMappingContext context) {
+		LOG.debug("Handling as xml sttribute: \n fetureType = {} \n mappingName = {}", featureType,
+				mappingName);
+		// if it's an anonymous type
+		if (featureType instanceof AnonymousXmlType) {
+			featureType = propertyCell.getTarget().values().stream().map(Entity::getDefinition)
+					.map(EntityDefinition::getType).findFirst()
+					.orElseThrow(() -> new IllegalArgumentException("No target type available"));
+		}
+
 		PropertyEntityDefinition targetPropertyEntityDef = targetProperty.getDefinition();
 		PropertyDefinition targetPropertyDef = targetPropertyEntityDef.getDefinition();
 
@@ -445,6 +473,8 @@ public abstract class AbstractPropertyTransformationHandler
 	 */
 	protected void handleAsXmlElement(TypeDefinition featureType, String mappingName,
 			AppSchemaMappingContext context) {
+		LOG.debug("Handling as xml element: \n featureType = {}, \n mappingName = {}", featureType,
+				mappingName);
 		PropertyEntityDefinition targetPropertyEntityDef = targetProperty.getDefinition();
 		PropertyDefinition targetPropertyDef = targetPropertyEntityDef.getDefinition();
 		TypeDefinition targetPropertyType = targetPropertyDef.getPropertyType();
@@ -607,7 +637,7 @@ public abstract class AbstractPropertyTransformationHandler
 				attributeMapping.setEncodeIfEmpty(true);
 			}
 		} catch (CQLException e) {
-			log.warn("Cannot set encodeIfEmpty value. Reason: " + e.getMessage());
+			LOG.warn("Cannot set encodeIfEmpty value. Reason: " + e.getMessage());
 		}
 	}
 
@@ -682,13 +712,14 @@ public abstract class AbstractPropertyTransformationHandler
 		final QName clientPropertyName = ofNullable(targetPropertyEntityDef)
 				.map(PropertyEntityDefinition::getDefinition).map(PropertyDefinition::getName)
 				.orElseThrow(() -> new IllegalArgumentException("No target name available"));
+		LOG.debug("Processing sequence element typeDefinition = {},\n clientPropertyName = {}",
+				typeDefinition, clientPropertyName);
 		// get the real root type
 		final TypeDefinition rootTargetType = propertyCell.getTarget().values().stream()
 				.map(Entity::getDefinition).map(EntityDefinition::getType).findFirst()
 				.orElseThrow(() -> new IllegalArgumentException("No target type available"));
-		// fir ChildContext list with only the first path
-		List<ChildContext> childContextList = Arrays
-				.asList(targetPropertyEntityDef.getPropertyPath().get(0));
+		// for ChildContext list with only the first path
+		List<ChildContext> childContextList = targetPropertyEntityDef.getPropertyPath();
 		attributeMapping = context.getOrCreateAttributeMapping(rootTargetType, null,
 				childContextList);
 		// set target attribute
@@ -738,6 +769,23 @@ public abstract class AbstractPropertyTransformationHandler
 			return attributeMapping;
 		}
 		return null;
+	}
+
+	private AttributeMappingType processAnonymousTypeAttribute(TypeDefinition typeDefinition,
+			AppSchemaMappingContext context) {
+		PropertyEntityDefinition targetPropertyEntityDef = targetProperty.getDefinition();
+		TypeDefinition rootTargetType = propertyCell.getTarget().values().stream()
+				.map(Entity::getDefinition).map(EntityDefinition::getType).findFirst()
+				.orElseThrow(() -> new IllegalArgumentException("No target type available"));
+		// we need to remove the last childContext because it is the attribute
+		// name
+		List<ChildContext> childContextList = new ArrayList<ChildContext>(
+				targetPropertyEntityDef.getPropertyPath());
+		childContextList.remove(childContextList.size() - 1);
+		attributeMapping = context.getOrCreateAttributeMapping(rootTargetType, null,
+				childContextList);
+
+		return attributeMapping;
 	}
 
 	private boolean hasAnonymousAttribute(String attrStepName) {
@@ -791,6 +839,7 @@ public abstract class AbstractPropertyTransformationHandler
 			return false;
 		}
 		// has our join a source with same Qname?
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		final Map<String, Collection<Entity>> sourceMap = (Map) ofNullable(typeCell)
 				.map(Cell::getSource).map(m -> m.asMap()).orElse(Collections.emptyMap());
 		final Optional<QName> joinQname = sourceMap.entrySet().stream().map(e -> e.getValue())

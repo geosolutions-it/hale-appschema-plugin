@@ -190,4 +190,12 @@ public class ChainConfiguration {
 		this.referenceLinkedType = referenceLinkedType;
 	}
 
+	@Override
+	public String toString() {
+		return "ChainConfiguration [chainIndex=" + chainIndex + ", prevChainIndex=" + prevChainIndex
+				+ ", jaxbNestedTypeTarget=" + jaxbNestedTypeTarget + ", nestedTypeTarget="
+				+ nestedTypeTarget + ", mappingName=" + mappingName + ", referenceLinkedType="
+				+ referenceLinkedType + "]";
+	}
+
 }
