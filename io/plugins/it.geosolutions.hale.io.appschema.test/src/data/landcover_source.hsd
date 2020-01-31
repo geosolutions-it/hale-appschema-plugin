@@ -59,6 +59,9 @@
 			<hsd:entry index="18">
 				<hsd:name namespace="jdbc:postgresql:lamma:public">landcover_denorm</hsd:name>
 			</hsd:entry>
+			<hsd:entry index="19">
+				<hsd:name namespace="jdbc:postgresql:lamma:public">landcover_fms</hsd:name>
+			</hsd:entry>
 		</hsd:type-index>
 		<hsd:mapping-relevant>9 10 11</hsd:mapping-relevant>
 		<hsd:types>
@@ -365,6 +368,47 @@
 					</hsd:property>
 				</hsd:declares>
 			</hsd:type>
+			
+			<hsd:type index="19">
+				<hsd:name namespace="jdbc:postgresql:lamma:public">landcover_fms</hsd:name>
+				<hsd:constraint type="has-value" value="false" />
+				<hsd:constraint type="mapping-relevant" value="false" />
+				<hsd:constraint type="mappable" value="true" />
+				<hsd:constraint type="primary-key">
+					<core:list xmlns:core="http://www.esdi-humboldt.eu/hale/core">
+						<core:entry>
+							<core:name>unit_id</core:name>
+						</core:entry>
+					</core:list>
+				</hsd:constraint>
+				<hsd:declares>
+					<hsd:property>
+						<hsd:name>unit_id</hsd:name>
+						<hsd:constraint type="cardinality" value="1..1" />
+						<hsd:constraint type="nillable" value="false" />
+						<hsd:propertyType index="14" />
+					</hsd:property>
+					<hsd:property>
+						<hsd:name>dataset_id</hsd:name>
+						<hsd:constraint type="cardinality" value="1..1" />
+						<hsd:constraint type="nillable" value="false" />
+						<hsd:propertyType index="16" />
+					</hsd:property>
+					<hsd:property>
+						<hsd:name>elem_value</hsd:name>
+						<hsd:constraint type="cardinality" value="1..1" />
+						<hsd:constraint type="nillable" value="true" />
+						<hsd:propertyType index="16" />
+					</hsd:property>
+					<hsd:property>
+						<hsd:name>lang</hsd:name>
+						<hsd:constraint type="cardinality" value="1..1" />
+						<hsd:constraint type="nillable" value="true" />
+						<hsd:propertyType index="16" />
+					</hsd:property>
+				</hsd:declares>
+			</hsd:type>
+			
 		</hsd:types>
 	</hsd:schema>
 </hsd:schemas>

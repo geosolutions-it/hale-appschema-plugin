@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- edited with XMLSpy v2014 sp1 (x64) (http://www.altova.com) by Chris Schubert (European Commission DG JRC - IES) -->
-<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:base="http://inspire.ec.europa.eu/schemas/base/3.3" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:lcn="http://inspire.ec.europa.eu/schemas/lcn/3.0" xmlns:lcv="http://inspire.ec.europa.eu/schemas/lcv/3.0" xmlns:sc="http://www.interactive-instruments.de/ShapeChange/AppInfo" xmlns:ns1="http://inspire.ec.europa.eu/schemas/lcn/3.0" targetNamespace="http://inspire.ec.europa.eu/schemas/lcv/3.0" elementFormDefault="qualified" version="3.0">
+<schema xmlns="http://www.w3.org/2001/XMLSchema" 
+    xmlns:base="http://inspire.ec.europa.eu/schemas/base/3.3" 
+    xmlns:gmd="http://www.isotc211.org/2005/gmd" 
+    xmlns:gml="http://www.opengis.net/gml/3.2" 
+    xmlns:lcn="http://inspire.ec.europa.eu/schemas/lcn/3.0" 
+    xmlns:lcv="http://inspire.ec.europa.eu/schemas/lcv/3.0" 
+    xmlns:sc="http://www.interactive-instruments.de/ShapeChange/AppInfo" 
+    xmlns:ns1="http://inspire.ec.europa.eu/schemas/lcn/3.0" 
+    xmlns:xml="http://www.w3.org/XML/1998/namespace"
+    targetNamespace="http://inspire.ec.europa.eu/schemas/lcv/3.0" 
+    elementFormDefault="qualified" version="3.0">
 	<annotation>
 		<documentation>application schema for Land Cover Vector</documentation>
 	</annotation>
@@ -9,6 +19,7 @@
 	<import namespace="http://www.interactive-instruments.de/ShapeChange/AppInfo" schemaLocation="http://portele.de/ShapeChangeAppinfo.xsd"/>
 	<import namespace="http://www.isotc211.org/2005/gmd" schemaLocation="http://schemas.opengis.net/iso/19139/20070417/gmd/gmd.xsd"/>
 	<import namespace="http://www.opengis.net/gml/3.2" schemaLocation="http://schemas.opengis.net/gml/3.2.1/gml.xsd"/>
+	<import schemaLocation="http://www.w3.org/2001/xml.xsd" namespace="http://www.w3.org/XML/1998/namespace"/>
 	<!--XML Schema document created by ShapeChange-->
 	<element name="LandCoverDataset" type="lcv:LandCoverDatasetType" substitutionGroup="gml:AbstractFeature">
 		<annotation>
@@ -163,6 +174,7 @@ A Land Cover dataset is a collection of LandCover units, each one being called a
 							</sequence>
 						</complexType>
 					</element>
+					<element name="fmelement" minOccurs="0" maxOccurs="1" type="lcv:FmaType"/>
 				</sequence>
 			</extension>
 		</complexContent>
@@ -384,5 +396,17 @@ Land cover information at a specific time and place.</documentation>
 		</sequence>
 		<attributeGroup ref="gml:AssociationAttributeGroup"/>
 		<attributeGroup ref="gml:OwnershipAttributeGroup"/>
+	</complexType>
+	<complexType name="FmaType">
+		<sequence minOccurs="0">
+			<element name="fmitem" maxOccurs="unbounded" type="lcv:FmitemType" />
+		</sequence>
+	</complexType>
+	<complexType name="FmitemType">
+		<simpleContent>
+			<extension base="string">
+				<attribute ref="xml:lang" default="fi"/>
+			</extension>
+		</simpleContent>
 	</complexType>
 </schema>

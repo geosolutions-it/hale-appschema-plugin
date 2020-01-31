@@ -110,11 +110,9 @@ public abstract class AbstractAppSchemaConfigurator extends AbstractAlignmentWri
 		WorkspaceConfiguration workspaceConfParam = getWorkspaceConfigurationParameter();
 
 		// get the db uri
-		final String dataStoreURI = dataStoreParam.getParameters().getParameter().stream()
-				.filter(p -> "data_store".equals(p.getName())).findFirst().map(Parameter::getValue)
-				.orElse("");
+		String dataStoreURI = fetchDataStoreUri(dataStoreParam);
 		// decide MappingGeneratot implementation
-		if (dataStoreURI.startsWith("mongodb")) {
+		if (dataStoreURI != null && dataStoreURI.startsWith("mongodb")) {
 			generator = new MongoMappingGenerator(getAlignment(), getTargetSchema(), dataStoreParam,
 					featureChainingParam, workspaceConfParam);
 		}
@@ -123,6 +121,16 @@ public abstract class AbstractAppSchemaConfigurator extends AbstractAlignmentWri
 					dataStoreParam, featureChainingParam, workspaceConfParam);
 		}
 		generator.generateMapping(reporter);
+	}
+
+	private String fetchDataStoreUri(DataStore dataStoreParam) {
+		if (dataStoreParam == null || dataStoreParam.getParameters() == null
+				|| dataStoreParam.getParameters().getParameter() == null)
+			return "";
+
+		return dataStoreParam.getParameters().getParameter().stream().filter(p -> p != null)
+				.filter(p -> "data_store".equals(p.getName())).findFirst().map(Parameter::getValue)
+				.orElse("");
 	}
 
 	@Override

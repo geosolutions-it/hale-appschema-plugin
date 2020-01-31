@@ -102,6 +102,7 @@ import it.geosolutions.hale.io.appschema.AppSchemaIO;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AppSchemaDataAccessType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeMappingType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeMappingType.ClientProperty;
+import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.JdbcMultiValueType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.TypeMappingsPropertyType.FeatureTypeMapping;
 import it.geosolutions.hale.io.appschema.model.ChainConfiguration;
 import it.geosolutions.hale.io.appschema.model.FeatureChaining;
@@ -146,6 +147,7 @@ public class AppSchemaMappingTest {
 	private static final String SOURCE_UNIT = "landcover_lcu";
 	private static final String SOURCE_UNIT_DENORM = "landcover_denorm";
 	private static final String SOURCE_OBSERVATION = "landcover_obs";
+	private static final String SOURCE_FMS = "landcover_fms";
 	private static final String SOURCE_DATASET_ID = "dataset_id";
 	private static final String SOURCE_UNIT_ID = "unit_id";
 	private static final String SOURCE_UUID_V1 = "uuid_v1";
@@ -167,6 +169,7 @@ public class AppSchemaMappingTest {
 	private static TypeDefinition unitDenormType;
 	private static TypeDefinition unitType;
 	private static TypeDefinition observationType;
+	private static TypeDefinition fmsType;
 	private static TypeDefinition landCoverUnitType;
 	private static TypeDefinition landCoverDatasetType;
 	private static TypeDefinition landCoverObservationType;
@@ -194,6 +197,8 @@ public class AppSchemaMappingTest {
 		assertNotNull(unitType);
 		observationType = source.getType(new QName(SOURCE_NS, SOURCE_OBSERVATION));
 		assertNotNull(observationType);
+		fmsType = source.getType(new QName(SOURCE_NS, SOURCE_FMS));
+		assertNotNull(fmsType);
 		landCoverUnitType = target.getType(new QName(LANDCOVER_NS, "LandCoverUnitType"));
 		assertNotNull(landCoverUnitType);
 		landCoverDatasetType = target.getType(new QName(LANDCOVER_NS, "LandCoverDatasetType"));
@@ -391,6 +396,7 @@ public class AppSchemaMappingTest {
 				"/data/feature-chaining-landcover_reference.xml");
 		JoinConfiguration joinConfiguration = chainingConf.getJoins().values().iterator().next();
 		ChainConfiguration chainConfiguration = joinConfiguration.getChain(0);
+		// here the UI nested type selection is emulated
 		// set the Nested type target
 		ChildDefinition<?> memberChildDef = DefinitionUtil.getChild(landCoverDatasetType,
 				new QName(LANDCOVER_NS, "referenceMember"));
@@ -649,6 +655,62 @@ public class AppSchemaMappingTest {
 		joinCell.setTransformationParameters(parameters);
 
 		return joinCell;
+	}
+
+	@SuppressWarnings("null")
+	private DefaultCell buildMultivalueJoinCell(FeatureChaining chainingConf) {
+		boolean withChaining = chainingConf != null;
+
+		DefaultCell joinCell = new DefaultCell();
+		joinCell.setTransformationIdentifier(JoinFunction.ID);
+		if (withChaining) {
+			// set cell ID from feature chaining configuration
+			// WARNING: this code assumes only one join is configured
+			joinCell.setId(chainingConf.getJoins().keySet().iterator().next());
+		}
+
+		TypeEntityDefinition datasetEntityDef = new TypeEntityDefinition(datasetType,
+				SchemaSpaceID.SOURCE, null);
+		TypeEntityDefinition fmsEntityDef = null;
+		fmsEntityDef = new TypeEntityDefinition(fmsType, SchemaSpaceID.SOURCE, null);
+
+		ListMultimap<String, Type> source = ArrayListMultimap.create();
+		source.put(JoinFunction.JOIN_TYPES, new DefaultType(datasetEntityDef));
+		source.put(JoinFunction.JOIN_TYPES, new DefaultType(fmsEntityDef));
+		assertEquals(2, source.get(JoinFunction.JOIN_TYPES).size());
+
+		ListMultimap<String, Type> target = ArrayListMultimap.create();
+		target.put(null, new DefaultType(
+				new TypeEntityDefinition(landCoverDatasetType, SchemaSpaceID.TARGET, null)));
+
+		List<TypeEntityDefinition> types = new ArrayList<TypeEntityDefinition>(
+				Arrays.asList(datasetEntityDef, fmsEntityDef));
+		Set<JoinCondition> conditions = new HashSet<JoinCondition>();
+		// join dataset and unit
+		PropertyEntityDefinition baseProperty = getDatasetIdSourceProperty().values().iterator()
+				.next().getDefinition();
+		PropertyEntityDefinition joinProperty = getFmsDatasetIdSourceProperty(
+				fmsEntityDef.getType()).values().iterator().next().getDefinition();
+		conditions.add(new JoinCondition(baseProperty, joinProperty));
+		JoinParameter joinParam = new JoinParameter(types, conditions);
+
+		ListMultimap<String, ParameterValue> parameters = ArrayListMultimap.create();
+		parameters.put(JoinFunction.PARAMETER_JOIN,
+				new ParameterValue(new ComplexValue(joinParam)));
+
+		joinCell.setSource(source);
+		joinCell.setTarget(target);
+		joinCell.setTransformationParameters(parameters);
+
+		return joinCell;
+	}
+
+	private ListMultimap<String, Property> getFmsDatasetIdSourceProperty(TypeDefinition unitType) {
+		ChildDefinition<?> childDef = DefinitionUtil.getChild(unitType,
+				new QName(SOURCE_DATASET_ID));
+		assertNotNull(childDef);
+
+		return createSourceProperty(unitType, childDef);
 	}
 
 	private void processJoinAlignment(Alignment alignment, FeatureChaining chainingConf) {
@@ -1270,6 +1332,78 @@ public class AppSchemaMappingTest {
 		// encodeIfEmpty has not been set, because we are using a mapping which
 		// is a function of the source value
 		assertNull(attrMapping.isEncodeIfEmpty());
+	}
+
+	/**
+	 * Tests chaining a jdbc multivalue simple element with client property.
+	 */
+	@Test
+	public void testNestedMultivalueJoinHandler() throws Exception {
+		FeatureChaining chainingConf = readFeatureChainingConfiguration(
+				"/data/feature-chaining-landcover_multivalue.xml");
+		JoinConfiguration joinConfiguration = chainingConf.getJoins().values().iterator().next();
+		ChainConfiguration chainConfiguration = joinConfiguration.getChain(0);
+		// here the UI nested type selection is emulated
+		// set the Nested type target
+		ChildDefinition<?> fmelementChildDef = DefinitionUtil.getChild(landCoverDatasetType,
+				new QName(LANDCOVER_NS, "fmelement"));
+		log.info("fmelement = {}", fmelementChildDef);
+		TypeDefinition fmelementType = fmelementChildDef.asProperty().getPropertyType();
+		log.info("fmelement type = {}", fmelementType);
+		GroupPropertyDefinition sequence = fmelementType.getChildren().iterator().next().asGroup();
+		log.info("fmelement sequence = {}", sequence);
+		log.info("fmelement sequence chidren = {}", sequence.getDeclaredChildren());
+		ChildDefinition<?> fmitemChildDef = DefinitionUtil.getChild(sequence,
+				new QName(LANDCOVER_NS, "fmitem"));
+		log.info("fmitem = {}", fmitemChildDef);
+		log.info("fmitem type = {}", fmitemChildDef.asProperty().getPropertyType());
+		chainConfiguration
+				.setNestedTypeTarget(
+						new PropertyEntityDefinition(landCoverDatasetType,
+								Arrays.asList(new ChildContext(fmelementChildDef),
+										new ChildContext(fmitemChildDef)),
+								SchemaSpaceID.TARGET, null));
+		assertNotNull(chainingConf);
+		// generate join cell
+		DefaultCell joinCell = buildMultivalueJoinCell(chainingConf);
+		log.info("join cell = {}", joinCell);
+
+		// create minimal alignment and pass it to JoinHandler
+		DefaultCell renameCell = new DefaultCell();
+		renameCell.setTransformationIdentifier(RenameFunction.ID);
+		renameCell.setSource(getFmsValueSourceProperty(fmsType));
+		renameCell.setTarget(
+				createNestedTargetProperty(Arrays.asList(fmelementChildDef, fmitemChildDef)));
+
+		DefaultAlignment alignment = new DefaultAlignment();
+		alignment.addCell(joinCell);
+		alignment.addCell(renameCell);
+
+		processJoinAlignment(alignment, chainingConf);
+
+		logMapping(mappingWrapper.getMainMapping());
+		logMapping(mappingWrapper.getIncludedTypesMapping());
+
+		List<FeatureTypeMapping> ftMappings = mappingWrapper.getMainMapping().getTypeMappings()
+				.getFeatureTypeMapping();
+		assertEquals(1, ftMappings.size());
+
+		FeatureTypeMapping featureTypeMapping = ftMappings.get(0);
+		AttributeMappingType attributeMappingType = featureTypeMapping.getAttributeMappings()
+				.getAttributeMapping().get(0);
+		JdbcMultiValueType jdbcMultipleValue = attributeMappingType.getJdbcMultipleValue();
+		assertNotNull(jdbcMultipleValue);
+		assertEquals("dataset_id", jdbcMultipleValue.getSourceColumn());
+		assertEquals("landcover_fms", jdbcMultipleValue.getTargetTable());
+		assertEquals("dataset_id", jdbcMultipleValue.getTargetColumn());
+		assertEquals("elem_value", jdbcMultipleValue.getTargetValue());
+	}
+
+	private ListMultimap<String, Property> getFmsValueSourceProperty(TypeDefinition fmsType) {
+		ChildDefinition<?> childDef = DefinitionUtil.getChild(fmsType, new QName("elem_value"));
+		assertNotNull(childDef);
+
+		return createSourceProperty(fmsType, childDef);
 	}
 
 	private ListMultimap<String, Property> getDatasetIdSourceProperty() {
