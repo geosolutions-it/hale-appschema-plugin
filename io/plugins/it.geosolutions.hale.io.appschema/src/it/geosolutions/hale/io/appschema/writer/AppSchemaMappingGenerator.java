@@ -60,6 +60,7 @@ import eu.esdihumboldt.hale.common.schema.model.SchemaSpace;
 import eu.esdihumboldt.hale.common.schema.model.impl.AbstractPropertyDecorator;
 import eu.esdihumboldt.hale.common.schema.model.impl.DefaultPropertyDefinition;
 import eu.esdihumboldt.hale.common.schema.model.impl.DefaultTypeDefinition;
+import eu.esdihumboldt.hale.io.xsd.reader.internal.XmlTypeDefinition;
 import it.geosolutions.hale.io.appschema.AppSchemaIO;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AppSchemaDataAccessType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.NamespacesPropertyType.Namespace;
@@ -526,8 +527,34 @@ public class AppSchemaMappingGenerator implements MappingGenerator {
 						prefix = defaultType.getName().getPrefix();
 				}
 			}
+			else {
+				String newPrefix = getPrefix(dpd);
+				if (StringUtils.isNotBlank(newPrefix)) {
+					prefix = newPrefix;
+				}
+			}
 		}
 		return new QName(namespaceURI, "", prefix);
+	}
+
+	private static String getPrefix(PropertyDefinition dpd) {
+		try {
+			if (dpd instanceof AbstractPropertyDecorator) {
+				AbstractPropertyDecorator cdp = (AbstractPropertyDecorator) dpd;
+				PropertyDefinition property = cdp.getDecoratedProperty();
+				if (property instanceof AbstractPropertyDecorator) {
+					DefinitionGroup declaringGroup = ((AbstractPropertyDecorator) property)
+							.getDeclaringGroup();
+					if (declaringGroup instanceof XmlTypeDefinition) {
+						XmlTypeDefinition typeDef = (XmlTypeDefinition) declaringGroup;
+						return typeDef.getName().getPrefix();
+					}
+				}
+			}
+		} catch (NullPointerException ex) {
+			log.warn("Prefix not found", ex);
+		}
+		return null;
 	}
 
 	private boolean isIsolated(String namespaceUri) {
