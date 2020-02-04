@@ -24,7 +24,9 @@ import org.junit.Test;
 import eu.esdihumboldt.hale.common.schema.model.PropertyDefinition;
 import eu.esdihumboldt.hale.common.schema.model.impl.DefaultPropertyDefinition;
 import eu.esdihumboldt.hale.common.schema.model.impl.DefaultTypeDefinition;
+import eu.esdihumboldt.hale.common.schema.model.impl.internal.RedeclareProperty;
 import eu.esdihumboldt.hale.common.schema.model.impl.internal.ReparentProperty;
+import eu.esdihumboldt.hale.io.xsd.reader.internal.XmlTypeDefinition;
 
 /**
  * Testing class for {@link AppSchemaMappingGenerator} class.
@@ -52,6 +54,30 @@ public class AppSchemaMappingGeneratorTest {
 		final DefaultPropertyDefinition propertyDefinition = new DefaultPropertyDefinition(
 				new QName(TYPE_NAMESPACE, "level"), definitionGroup, propertyType);
 		PropertyDefinition child = new ReparentProperty(propertyDefinition, parentType);
+		QName qName = AppSchemaMappingGenerator.tryInferNamespacePrefix(child);
+		assertEquals(TYPE_NAMESPACE, qName.getNamespaceURI());
+		assertEquals("geo", qName.getPrefix());
+	}
+
+	/**
+	 * Check tryInferNamespacePrefix method for infer Prefix on some cases child
+	 * QName doesn't have any value and with deep decorated properties.
+	 */
+	@Test
+	public void testTryInferNamespaceDeepPrefix() {
+		DefaultTypeDefinition parentType = new XmlTypeDefinition(
+				new QName(TYPE_NAMESPACE, "ParentType", "geo"));
+		DefaultTypeDefinition definitionGroup = new XmlTypeDefinition(
+				new QName(TYPE_NAMESPACE, "GroupDef", "geo"));
+
+		DefaultTypeDefinition propertyType = new DefaultTypeDefinition(
+				new QName(TYPE_NAMESPACE, "PropertyType", ""));
+		final DefaultPropertyDefinition propertyDefinition = new DefaultPropertyDefinition(
+				new QName(TYPE_NAMESPACE, "level"), definitionGroup, propertyType);
+		RedeclareProperty redeclared = new RedeclareProperty(propertyDefinition, definitionGroup);
+		PropertyDefinition child = new RedeclareProperty(redeclared, parentType);
+		child = new RedeclareProperty(child, propertyType);
+		child = new RedeclareProperty(child, propertyType);
 		QName qName = AppSchemaMappingGenerator.tryInferNamespacePrefix(child);
 		assertEquals(TYPE_NAMESPACE, qName.getNamespaceURI());
 		assertEquals("geo", qName.getPrefix());
