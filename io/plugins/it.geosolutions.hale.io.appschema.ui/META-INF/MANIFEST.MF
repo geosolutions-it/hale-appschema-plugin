@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: GeoServer App-Schema I/O UI
 Bundle-SymbolicName: it.geosolutions.hale.io.appschema.ui;singleton:=true
-Bundle-Version: 3.5.0.release
+Bundle-Version: 3.5.1.release
 Bundle-Vendor: GeoSolutions
 Require-Bundle: org.eclipse.ui;bundle-version="3.6.2",
  org.eclipse.core.runtime;bundle-version="3.6.0",
