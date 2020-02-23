@@ -28,6 +28,8 @@ import static it.geosolutions.hale.io.appschema.writer.AppSchemaMappingUtils.isH
 import java.util.Collection;
 import java.util.List;
 
+import de.fhg.igd.slf4jplus.ALogger;
+import de.fhg.igd.slf4jplus.ALoggerFactory;
 import eu.esdihumboldt.cst.functions.core.Join;
 import eu.esdihumboldt.hale.common.align.model.Alignment;
 import eu.esdihumboldt.hale.common.align.model.AlignmentUtil;
@@ -69,6 +71,8 @@ import it.geosolutions.hale.io.appschema.writer.internal.mapping.MappingWrapper;
  * @author Stefano Costa, GeoSolutions
  */
 public class JoinHandler implements TypeTransformationHandler {
+
+	private static final ALogger LOG = ALoggerFactory.getLogger(JoinHandler.class);
 
 	private PropertyEntityDefinition baseProperty;
 	private PropertyEntityDefinition joinProperty;
@@ -112,9 +116,7 @@ public class JoinHandler implements TypeTransformationHandler {
 				chainConf = featureChaining.getChain(typeCell.getId(), chainIdx);
 				if (chainConf != null) {
 					// detect unbounded anonymous sequence or element
-					if (AppSchemaIO.isUnboundedSequence(
-							chainConf.getNestedTypeTarget().getDefinition().getPropertyType())
-							|| AppSchemaIO.isUnboundedElement(chainConf.getNestedTypeTarget())) {
+					if (isUnboundedAnonymousSequenceOrElement(chainConf)) {
 						// nothing to do here
 						return null;
 					}
@@ -284,6 +286,23 @@ public class JoinHandler implements TypeTransformationHandler {
 		}
 
 		return topMostMapping;
+	}
+
+	private boolean isUnboundedAnonymousSequenceOrElement(ChainConfiguration chainConf) {
+		try {
+			TypeDefinition nestedTargetType = chainConf.getNestedTypeTarget().getDefinition()
+					.getPropertyType();
+			// not ReferenceType allowed here
+			if (AppSchemaIO.isReferenceType(nestedTargetType)) {
+				return false;
+			}
+			return AppSchemaIO.isUnboundedSequence(nestedTargetType)
+					|| AppSchemaIO.isUnboundedElement(chainConf.getNestedTypeTarget());
+		} catch (NullPointerException ex) {
+			LOG.warn("Exception trying to determine if it is an unbounded sequence", ex);
+			// this should never happen
+		}
+		return false;
 	}
 
 	private String getLinkElementValue(FeatureTypeMapping nestedFeatureTypeMapping) {

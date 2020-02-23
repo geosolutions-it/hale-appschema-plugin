@@ -178,29 +178,15 @@ public abstract class AbstractPropertyTransformationHandler
 				List<ChainConfiguration> chains = context.getFeatureChaining().getChains(joinId);
 				ChainConfiguration chainConf = findLongestNestedPath(
 						targetPropertyEntityDef.getPropertyPath(), chains);
-				// check HREF with use case
-				Optional<EntityDefinition> definitionOpt = propertyCell.getTarget().values()
-						.stream().findFirst().map(x -> x.getDefinition());
-				final TypeDefinition ftypeFinal = featureType;
-				boolean isSameParentType = definitionOpt.map(x -> x.getType()).map(x -> x.getName())
-						.filter(x -> x.equals(ftypeFinal.getName())).isPresent();
-				Optional<QName> childName = definitionOpt.map(x -> x.getLastPathElement())
-						.map(x -> x.getChild()).map(x -> x.getName());
-				boolean isHrefAttribute = childName.filter(x -> "href".equals(x.getLocalPart()))
-						.isPresent();
-				if (chainConf != null
-						&& !(isHrefClientPropertyCompatible(propertyCell) && isHrefAttribute
-								&& isSameParentType)
+				if (chainConf != null && !isHrefLinkedAttribute(propertyCell, featureType)
 						&& !chainConf.getNestedTypeTargetType().equals(featureType)) {
 					// don't translate mapping, will do it (or have done it)
 					// elsewhere!
 					featureType = null;
 					if (LOG.isDebugEnabled())
-						LOG.debug(
-								"Don't map properties that belong to a feature chaining "
-										+ "configuration other than the current one. \n"
-										+ "chainConf = {} \n isSameParentType = {}",
-								chainConf, isSameParentType);
+						LOG.debug("Don't map properties that belong to a feature chaining "
+								+ "configuration other than the current one. \n" + "chainConf = {}",
+								chainConf);
 					break;
 				}
 			}
@@ -243,6 +229,19 @@ public abstract class AbstractPropertyTransformationHandler
 		}
 
 		return attributeMapping;
+	}
+
+	private boolean isHrefLinkedAttribute(Cell propertyCell, TypeDefinition featureType) {
+		Optional<EntityDefinition> definitionOpt = propertyCell.getTarget().values().stream()
+				.findFirst().map(x -> x.getDefinition());
+		final TypeDefinition ftypeFinal = featureType;
+		boolean isSameParentType = definitionOpt.map(x -> x.getType()).map(x -> x.getName())
+				.filter(x -> x.equals(ftypeFinal.getName())).isPresent();
+		Optional<QName> childName = definitionOpt.map(x -> x.getLastPathElement())
+				.map(x -> x.getChild()).map(x -> x.getName());
+		boolean isHrefAttribute = childName.filter(x -> "href".equals(x.getLocalPart()))
+				.isPresent();
+		return isHrefClientPropertyCompatible(propertyCell) && isHrefAttribute && isSameParentType;
 	}
 
 	static boolean isValidFeatureType(TypeDefinition featureType) {

@@ -453,15 +453,12 @@ public class AppSchemaMappingTest {
 		// set the Nested type target
 		ChildDefinition<?> memberChildDef = DefinitionUtil.getChild(landCoverDatasetType,
 				new QName(LANDCOVER_NS, "referenceMember"));
-		ChildDefinition<?> hrefChildDef = DefinitionUtil.getChild(memberChildDef,
-				new QName(XLINK_NS, "href"));
 		chainConfiguration.setNestedTypeTarget(new PropertyEntityDefinition(landCoverDatasetType,
-				Arrays.asList(new ChildContext(memberChildDef), new ChildContext(hrefChildDef)),
-				SchemaSpaceID.TARGET, null));
-		chainConfiguration.setReferenceLinkedType(this.landCoverUnitType);
+				Arrays.asList(new ChildContext(memberChildDef)), SchemaSpaceID.TARGET, null));
+		chainConfiguration.setReferenceLinkedType(landCoverDatasetType);
 		assertNotNull(chainingConf);
 		// generate join cell
-		DefaultCell joinCell = buildJoinCell(chainingConf);
+		DefaultCell joinCell = buildReferemceJoinCell(chainingConf);
 
 		// create minimal alignment and pass it to JoinHandler
 		DefaultCell renameCell = new DefaultCell();
@@ -480,35 +477,26 @@ public class AppSchemaMappingTest {
 
 		List<FeatureTypeMapping> ftMappings = mappingWrapper.getMainMapping().getTypeMappings()
 				.getFeatureTypeMapping();
-		assertEquals(2, ftMappings.size());
+		assertEquals(1, ftMappings.size());
 
-		FeatureTypeMapping lcdMapping = null, lcuMapping = null;
+		FeatureTypeMapping lcdMapping = null;
 		for (FeatureTypeMapping ftMapping : ftMappings) {
-			if (SOURCE_DATASET.equals(ftMapping.getSourceType())
-					&& "lcv:LandCoverDataset".equals(ftMapping.getTargetElement())) {
+			if ("lcv:LandCoverDataset".equals(ftMapping.getTargetElement())) {
 				lcdMapping = ftMapping;
-			}
-			if (SOURCE_UNIT.equals(ftMapping.getSourceType())
-					&& "lcv:LandCoverUnit".equals(ftMapping.getTargetElement())) {
-				lcuMapping = ftMapping;
 			}
 		}
 		assertNotNull(lcdMapping);
-		assertNotNull(lcuMapping);
 
 		// check feature chaining configuration
 		List<AttributeMappingType> lcdAttrMappings = lcdMapping.getAttributeMappings()
 				.getAttributeMapping();
-		List<AttributeMappingType> lcuAttrMappings = lcuMapping.getAttributeMappings()
-				.getAttributeMapping();
 		assertNotNull(lcdAttrMappings);
-		assertNotNull(lcuAttrMappings);
-		assertEquals(1, lcdAttrMappings.size());
-		assertEquals(1, lcuAttrMappings.size());
+		assertEquals(2, lcdAttrMappings.size());
 
 		AttributeMappingType containerMapping = lcdAttrMappings.get(0);
 		assertEquals("lcv:referenceMember", containerMapping.getTargetAttribute());
-		assertEquals("lcv:LandCoverUnit", containerMapping.getSourceExpression().getLinkElement());
+		assertEquals("lcv:LandCoverDataset",
+				containerMapping.getSourceExpression().getLinkElement());
 		assertEquals("FEATURE_LINK[1]", containerMapping.getSourceExpression().getLinkField());
 		assertEquals(SOURCE_DATASET_ID, containerMapping.getSourceExpression().getOCQL());
 		assertTrue(containerMapping.isIsMultiple());
@@ -517,12 +505,6 @@ public class AppSchemaMappingTest {
 		assertEquals(1, containerMapping.getClientProperty().size());
 		assertEquals("xlink:href", containerMapping.getClientProperty().get(0).getName());
 		assertEquals(SOURCE_UNIT_ID, containerMapping.getClientProperty().get(0).getValue());
-
-		AttributeMappingType nestedMapping = lcuAttrMappings.get(0);
-		assertEquals("FEATURE_LINK[1]", nestedMapping.getTargetAttribute());
-		assertEquals(SOURCE_DATASET_ID, nestedMapping.getSourceExpression().getOCQL());
-		assertNull(nestedMapping.getSourceExpression().getLinkElement());
-		assertNull(nestedMapping.getSourceExpression().getLinkField());
 	}
 
 	@Test
@@ -744,6 +726,54 @@ public class AppSchemaMappingTest {
 				.next().getDefinition();
 		PropertyEntityDefinition joinProperty = getFmsDatasetIdSourceProperty(
 				fmsEntityDef.getType()).values().iterator().next().getDefinition();
+		conditions.add(new JoinCondition(baseProperty, joinProperty));
+		JoinParameter joinParam = new JoinParameter(types, conditions);
+
+		ListMultimap<String, ParameterValue> parameters = ArrayListMultimap.create();
+		parameters.put(JoinFunction.PARAMETER_JOIN,
+				new ParameterValue(new ComplexValue(joinParam)));
+
+		joinCell.setSource(source);
+		joinCell.setTarget(target);
+		joinCell.setTransformationParameters(parameters);
+
+		return joinCell;
+	}
+
+	@SuppressWarnings("null")
+	private DefaultCell buildReferemceJoinCell(FeatureChaining chainingConf) {
+		boolean withChaining = chainingConf != null;
+
+		DefaultCell joinCell = new DefaultCell();
+		joinCell.setTransformationIdentifier(JoinFunction.ID);
+		if (withChaining) {
+			// set cell ID from feature chaining configuration
+			// WARNING: this code assumes only one join is configured
+			joinCell.setId(chainingConf.getJoins().keySet().iterator().next());
+		}
+
+		TypeEntityDefinition datasetEntityDef = new TypeEntityDefinition(datasetType,
+				SchemaSpaceID.SOURCE, null);
+		TypeEntityDefinition unitEntityDef = null;
+		unitEntityDef = new TypeEntityDefinition(unitType, SchemaSpaceID.SOURCE, null);
+
+		ListMultimap<String, Type> source = ArrayListMultimap.create();
+		source.put(JoinFunction.JOIN_TYPES, new DefaultType(datasetEntityDef));
+		source.put(JoinFunction.JOIN_TYPES, new DefaultType(unitEntityDef));
+		assertEquals(2, source.get(JoinFunction.JOIN_TYPES).size());
+
+		ListMultimap<String, Type> target = ArrayListMultimap.create();
+		target.put(null, new DefaultType(
+				new TypeEntityDefinition(landCoverDatasetType, SchemaSpaceID.TARGET, null)));
+
+		List<TypeEntityDefinition> types = new ArrayList<TypeEntityDefinition>(
+				Arrays.asList(datasetEntityDef, unitEntityDef));
+		Set<JoinCondition> conditions = new HashSet<JoinCondition>();
+		// join dataset and unit
+		PropertyEntityDefinition baseProperty = getDatasetIdSourceProperty().values().iterator()
+				.next().getDefinition();
+		PropertyEntityDefinition joinProperty = getFmsDatasetIdSourceProperty(
+				unitEntityDef.getType()).values().iterator().next().getDefinition();
 		conditions.add(new JoinCondition(baseProperty, joinProperty));
 		JoinParameter joinParam = new JoinParameter(types, conditions);
 
@@ -1600,7 +1630,9 @@ public class AppSchemaMappingTest {
 		ChildDefinition<?> hrefChildDef = DefinitionUtil.getChild(memberChildDef,
 				new QName(XLINK_NS, "href"));
 		assertNotNull(hrefChildDef);
-		return createNestedTargetProperty(Arrays.asList(memberChildDef, hrefChildDef));
+
+		return createTargetProperty(landCoverDatasetType,
+				Arrays.asList(memberChildDef, hrefChildDef), null, null);
 	}
 
 	private ListMultimap<String, Property> getNestedObservationClassTargetProperty() {
