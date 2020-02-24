@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Mongo
 Bundle-SymbolicName: eu.esdihumboldt.hale.io.mongo;singleton:=true
-Bundle-Version: 3.5.1.release
+Bundle-Version: 3.5.2.release
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ClassPath: ., lib/mongo-java-driver.jar
 Require-Bundle: org.eclipse.core.contenttype;bundle-version="3.5.0",
