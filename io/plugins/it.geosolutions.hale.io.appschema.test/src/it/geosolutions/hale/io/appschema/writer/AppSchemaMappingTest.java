@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
@@ -103,6 +104,7 @@ import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AppS
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeMappingType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AttributeMappingType.ClientProperty;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.JdbcMultiValueType;
+import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.NamespacesPropertyType.Namespace;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.TypeMappingsPropertyType.FeatureTypeMapping;
 import it.geosolutions.hale.io.appschema.model.ChainConfiguration;
 import it.geosolutions.hale.io.appschema.model.FeatureChaining;
@@ -278,10 +280,11 @@ public class AppSchemaMappingTest {
 
 		processJoinAlignment(alignment, null);
 
-//		logMapping(mappingWrapper.getMainMapping());
+		final AppSchemaDataAccessType mainMapping = mappingWrapper.getMainMapping();
 
-		List<FeatureTypeMapping> ftMappings = mappingWrapper.getMainMapping().getTypeMappings()
-				.getFeatureTypeMapping();
+		logMapping(mainMapping);
+
+		List<FeatureTypeMapping> ftMappings = mainMapping.getTypeMappings().getFeatureTypeMapping();
 		assertEquals(2, ftMappings.size());
 
 		FeatureTypeMapping lcdMapping = null, lcuMapping = null;
@@ -320,6 +323,56 @@ public class AppSchemaMappingTest {
 		assertEquals(SOURCE_DATASET_ID, nestedMapping.getSourceExpression().getOCQL());
 		assertNull(nestedMapping.getSourceExpression().getLinkElement());
 		assertNull(nestedMapping.getSourceExpression().getLinkField());
+
+		// check namespace correct prefixes output
+		checkNamespacesPrefixes(mainMapping);
+	}
+
+	/**
+	 * Checks namespaces prefixes are the expected on the output mapping.
+	 */
+	private void checkNamespacesPrefixes(final AppSchemaDataAccessType mainMapping) {
+		List<Namespace> namespaces = mainMapping.getNamespaces().getNamespace();
+		Map<String, String> realNamespacesMap = toNamespacesPrefixesMap(namespaces);
+		Map<String, String> expectedNamespacesMap = getExpectedNamepacesPrefixesMap();
+		checkNamespacesPrefixesEquals(expectedNamespacesMap, realNamespacesMap);
+	}
+
+	/**
+	 * Util method for asserting both namespace prefixes maps have the same
+	 * content.
+	 */
+	private void checkNamespacesPrefixesEquals(Map<String, String> expectedNamepaces,
+			Map<String, String> realNamespaces) {
+		assertNotNull(realNamespaces);
+		assertNotNull(expectedNamepaces);
+		assertEquals(expectedNamepaces.size(), realNamespaces.size());
+		for (String namespaceUri : expectedNamepaces.keySet()) {
+			assertEquals(expectedNamepaces.get(namespaceUri), realNamespaces.get(namespaceUri));
+		}
+	}
+
+	/**
+	 * Transforms a list of namspaces to a map of namespace URI keys and prefix
+	 * values.
+	 */
+	private Map<String, String> toNamespacesPrefixesMap(List<Namespace> namespaces) {
+		Map<String, String> nsMap = namespaces.stream()
+				.collect(Collectors.toMap(Namespace::getUri, Namespace::getPrefix));
+		return nsMap;
+	}
+
+	/**
+	 * Builds the map of namespace uris and prefixes expected on output mapping.
+	 */
+	private Map<String, String> getExpectedNamepacesPrefixesMap() {
+		Map<String, String> nsMap = new HashMap<>();
+		nsMap.put("http://inspire.ec.europa.eu/schemas/lcv/3.0", "lcv");
+		nsMap.put("http://inspire.ec.europa.eu/schemas/base/3.3", "base");
+		nsMap.put("http://www.opengis.net/gml/3.2", "gml");
+		nsMap.put("http://www.isotc211.org/2005/gmd", "gmd");
+		nsMap.put("http://www.w3.org/1999/xlink", "xlink");
+		return Collections.unmodifiableMap(nsMap);
 	}
 
 	@Test

@@ -60,6 +60,7 @@ import eu.esdihumboldt.hale.common.schema.model.SchemaSpace;
 import eu.esdihumboldt.hale.common.schema.model.impl.AbstractPropertyDecorator;
 import eu.esdihumboldt.hale.common.schema.model.impl.DefaultPropertyDefinition;
 import eu.esdihumboldt.hale.common.schema.model.impl.DefaultTypeDefinition;
+import eu.esdihumboldt.hale.io.xsd.reader.internal.XmlTypeDefinition;
 import it.geosolutions.hale.io.appschema.AppSchemaIO;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.AppSchemaDataAccessType;
 import it.geosolutions.hale.io.appschema.impl.internal.generated.app_schema.NamespacesPropertyType.Namespace;
@@ -526,8 +527,44 @@ public class AppSchemaMappingGenerator implements MappingGenerator {
 						prefix = defaultType.getName().getPrefix();
 				}
 			}
+			else {
+				String newPrefix = getPrefix(dpd, namespaceURI);
+				if (StringUtils.isNotBlank(newPrefix)) {
+					prefix = newPrefix;
+				}
+			}
 		}
 		return new QName(namespaceURI, "", prefix);
+	}
+
+	/**
+	 * Helper method that tries to find a good prefix for the provided namespace
+	 * from the provided property definition, in practice it will traverse the
+	 * XSD tree to find the namespace declaration. If no matching namespace
+	 * declaration is found, NULL will be returned and the invoke will handle
+	 * the situation, probably by generating a new namespace declaration and
+	 * assigning and unique random prefix.
+	 */
+	private static String getPrefix(PropertyDefinition propertyDefinition, String namespaceURI) {
+		if (propertyDefinition instanceof AbstractPropertyDecorator) {
+			AbstractPropertyDecorator cdp = (AbstractPropertyDecorator) propertyDefinition;
+			PropertyDefinition property = cdp.getDecoratedProperty();
+			if (property instanceof AbstractPropertyDecorator) {
+				DefinitionGroup declaringGroup = ((AbstractPropertyDecorator) property)
+						.getDeclaringGroup();
+				if (declaringGroup instanceof XmlTypeDefinition) {
+					XmlTypeDefinition typeDef = (XmlTypeDefinition) declaringGroup;
+					// if the type definition namespace URI matches with the
+					// parameter, return the prefix
+					if (typeDef.getName() != null
+							&& namespaceURI.equals(typeDef.getName().getNamespaceURI())) {
+						return typeDef.getName().getPrefix();
+					}
+				}
+			}
+		}
+		// no prefix found, return an empty string
+		return null;
 	}
 
 	private boolean isIsolated(String namespaceUri) {
