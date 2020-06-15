@@ -12,4 +12,4 @@ Hale [GeoServer](http://geoserver.org/) App-Schema plugin its installed directly
 Releases of the plugin are performed as needed, the process is automated in [this](https://build.geo-solutions.it/jenkins/view/HALE/job/HALE%20AppSchema%20Plugin/) Jenkins job.
 
 # License
-Hale GeoServer App-Schema plugin is Free and Open Source software, it is based on GeoTools, GeoServer and Hale, and is licensed under the Simplified BSD License.
+Hale GeoServer App-Schema plugin is Free and Open Source software, it is based on GeoTools, GeoServer and Hale, and is licensed under the GNU Lesser General Public License (LGPL) v3.0.
