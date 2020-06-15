@@ -7,7 +7,7 @@ This is the home of the GeoServer App-Schema plugin for Hale. A comprehensive tu
 Hale [GeoServer](http://geoserver.org/) App-Schema plugin its installed directly from Hale plugin manager with a few clicks, the only requirement to achieve the installation is having an internet connection and [HALE](https://www.wetransform.to/downloads/) installed. Step by step instructions for the installation and configuration of the plugin can be found [here](https://geoserver.geo-solutions.it/edu/en/complex_features/installation/index.html).
 
 
-# Releases of the plugin
+# Releases of the Plugin
 
 Releases of the plugin are performed as needed, the process is automated in [this](https://build.geo-solutions.it/jenkins/view/HALE/job/HALE%20AppSchema%20Plugin/) Jenkins job.
 
